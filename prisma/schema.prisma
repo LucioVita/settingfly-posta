@@ -1,0 +1,129 @@
+// web/prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Tone {
+  cercano
+  profesional
+  urgente
+}
+
+enum UseEmojis {
+  moderado
+  positivo
+  nunca
+}
+
+enum Dialect {
+  rioplatense
+  neutro
+  espana
+}
+
+enum BookingType {
+  calendly
+  whatsapp
+  link
+}
+
+enum ScheduleMode {
+  daily
+  TwentyFourSeven
+  FueraHorario
+  SoloFinde
+}
+
+model User {
+  id            Int      @id @default(autoincrement())
+  email         String   @unique
+  passwordHash  String
+  name          String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  setterConfig  SetterConfig?
+  igAccounts    IgAccount[]
+  conversations Conversation[]
+}
+
+model SetterConfig {
+  id                Int       @id @default(autoincrement())
+  userId            Int       @unique
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  aiEnabled         Boolean   @default(true)
+  businessName      String    @default("Settingfly")
+  offerDescription  String    @default("Automatización de ventas para Instagram y cualificación con IA para agencias y creadores")
+  targetAudience    String    @default("Dueños de agencias B2B, formadores y negocios que reciben +20 DMs diarios")
+  priceRange        String    @default("$500 - $1,500 USD")
+  setterName        String    @default("Asistente")
+  tone              Tone      @default(cercano)
+  useEmojis         UseEmojis @default(moderado)
+  dialect           Dialect   @default(rioplatense)
+  bookingType       BookingType @default(calendly)
+  bookingUrl        String    @default("https://settingfly.com/demo")
+  ctaHook           String    @default("Sesión de diagnóstico de 15 minutos sin costo")
+  keywords          Json // Array of strings stored as JSON
+  triggerComments   Boolean   @default(true)
+  triggerDms        Boolean   @default(true)
+  triggerStories    Boolean   @default(false)
+  qualificationQ1   String    @default("¿Actualmente ya tenés un negocio en marcha o estás por comenzar?")
+  qualificationQ2   String    @default("¿Qué volumen aproximado de prospectos o consultas recibís por semana?")
+  qualificationQ3   String    @default("¿Cuentas con presupuesto para invertir en delegar esto si encaja con tu negocio?")
+  faqPrice          String    @default("El valor depende exactamente de tus necesidades y volumen de leads. En una llamada corta de 15 min vemos si aplicas y te paso el presupuesto exacto. ¿Qué día te queda mejor?")
+  faqInfo           String    @default("Te entiendo perfectamente. Como armamos una solución a medida, en la sesión de 15 min te comparto pantalla y te muestro el embudo funcionando en vivo. ¿Te paso el link?")
+  faqTime           String    @default("¡Totalmente comprensible! Justamente este sistema te devuelve entre 10 y 15 horas por semana. ¿Te parece si agendamos para la semana que viene o te escribo el viernes?")
+  noClosedPrices    Boolean   @default(true)
+  noRefundPromises  Boolean   @default(true)
+  disqualifyPolite  Boolean   @default(true)
+  customRedLines    String    @default("Nunca insultar, no hablar de política, ni prometer números de facturación irreales.")
+  scheduleMode      ScheduleMode @default(TwentyFourSeven)
+  timezone          String    @default("America/Argentina/Buenos_Aires")
+  delayMin          Int       @default(15)
+  delayMax          Int       @default(45)
+  takeoverOnRequest Boolean   @default(true)
+  takeoverOnScheduled Boolean @default(true)
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+model IgAccount {
+  id                Int      @id @default(autoincrement())
+  userId            Int
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  instagramId       String   @unique // Meta's scoped ID for the IG account
+  username          String   // IG username
+  accessToken       String   // Encrypted access token
+  pageId            String   // Meta Page ID associated with IG Business Account
+  expiresAt         DateTime // Access token expiration
+
+  conversations     Conversation[]
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Conversation {
+  id                Int      @id @default(autoincrement())
+  igAccountId       Int
+  igAccount         IgAccount @relation(fields: [igAccountId], references: [id], onDelete: Cascade)
+  userId            Int
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  instagramUserId   String   // The prospect's Instagram User ID
+  instagramUsername String   // The prospect's Instagram username
+  status            String   @default("new") // e.g., "new", "qualifying", "ready_for_call", "booked", "human_takeover", "disqualified"
+  history           Json     // Array of messages: { role: "user" | "bot", content: string, timestamp: DateTime }
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+

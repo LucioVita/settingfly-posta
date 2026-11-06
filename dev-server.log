@@ -1,0 +1,40 @@
+
+> web@0.1.0 dev
+> next dev
+
+▲ Next.js 16.4.3 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.1.27:3000
+- Environments: .env
+✓ Ready in 753ms
+✓ Running next.config.ts took 70ms
+- Cache Components enabled
+- Partial Prefetching enabled
+
+ GET / 200 in 439ms (next.js: 224ms, application-code: 215ms)
+ GET /api/auth/me 401 in 229ms (next.js: 101ms, application-code: 128ms)
+ GET /api/auth/me 401 in 18ms (next.js: 5ms, application-code: 13ms)
+ GET / 200 in 49ms (next.js: 3ms, application-code: 46ms)
+ GET / 200 in 41ms (next.js: 2ms, application-code: 38ms)
+ GET /login 200 in 84ms (next.js: 10ms, application-code: 73ms)
+ POST /api/auth/login 200 in 144ms (next.js: 33ms, application-code: 111ms)
+ POST /api/auth/login 200 in 89ms (next.js: 2.0ms, application-code: 87ms)
+ GET /api/setter/config 200 in 67ms (next.js: 36ms, application-code: 31ms)
+ GET / 200 in 82ms (next.js: 2ms, application-code: 80ms)
+ GET /api/auth/me 401 in 37ms (next.js: 4ms, application-code: 33ms)
+ GET /api/auth/me 401 in 25ms (next.js: 2ms, application-code: 22ms)
+ GET / 200 in 38ms (next.js: 12ms, application-code: 27ms)
+✓ Compiled in 180ms
+ GET / 200 in 38ms (next.js: 4ms, application-code: 34ms)
+ GET / 200 in 63ms (next.js: 1.5ms, application-code: 61ms)
+ GET / 200 in 63ms (next.js: 4ms, application-code: 59ms)
+ GET /api/auth/me 401 in 23ms (next.js: 4ms, application-code: 19ms)
+ GET /api/auth/me 401 in 28ms (next.js: 6ms, application-code: 22ms)
+✓ Compiled in 137ms
+ GET /login 200 in 53ms (next.js: 10ms, application-code: 43ms)
+ GET / 200 in 50ms (next.js: 3ms, application-code: 48ms)
+  Turbopack has seen frequent file updates and is waiting for the filesystem to settle (0.5s elapsed so far; last modified: "\\\\?\\E:\\Curriculums\\Auto-Setter\\web\\node_modules\\es-abstract\\2020\\Number").
+  Turbopack has seen frequent file updates and is waiting for the filesystem to settle (1.5s elapsed so far; last modified: "\\\\?\\E:\\Curriculums\\Auto-Setter\\web\\node_modules\\zod-validation-error\\v3").
+ GET / 200 in 75ms (next.js: 3ms, application-code: 72ms)
+ GET /api/auth/me 401 in 18ms (next.js: 3ms, application-code: 15ms)
+ GET /api/auth/me 401 in 15ms (next.js: 3ms, application-code: 12ms)
