@@ -112,6 +112,9 @@ export async function getCurrentUser() {
         name: true,
         createdAt: true,
         updatedAt: true,
+        plan: true,
+        subscriptionStatus: true,
+        subscriptionEndsAt: true,
         setterConfig: true,
         igAccounts: {
           select: {

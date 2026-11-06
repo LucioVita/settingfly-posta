@@ -60,7 +60,7 @@ export default function LoginPage() {
       );
 
       setTimeout(() => {
-        router.push("/");
+        router.push("/dashboard");
         router.refresh();
       }, 1000);
     } catch {
@@ -96,11 +96,6 @@ export default function LoginPage() {
       <main className="w-full max-w-7xl mx-auto px-6 py-8 flex-1 flex flex-col lg:flex-row items-center justify-center gap-12 lg:gap-20 z-10">
         {/* Left Side: Value Proposition & Social Proof */}
         <div className="flex-1 flex flex-col gap-6 max-w-xl text-left">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#00f2fe]/10 text-[#00f2fe] border border-[#00f2fe]/30 shadow-neon-cyan w-fit">
-            <span className="w-2 h-2 rounded-full bg-[#00f2fe] shadow-[0_0_8px_#00f2fe] animate-pulse"></span>
-            <span className="text-xs font-mono font-bold tracking-wider uppercase">Plataforma Multi-Tenant 2026</span>
-          </div>
-
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-extrabold text-white tracking-tight leading-tight">
             El Setter Autónomo de Instagram que{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#d4ff00] via-[#00f2fe] to-[#ff7a00]">
@@ -319,7 +314,15 @@ export default function LoginPage() {
 
       {/* Footer Minimal */}
       <footer className="w-full max-w-7xl mx-auto px-6 py-6 text-center text-[11px] text-slate-500 font-mono z-10">
-        © 2026 Settingfly.com • Arquitectura Multi-Tenant con Meta Graph API y MySQL.
+        © 2026 Settingfly.com • Desarrollado por{" "}
+        <a
+          href="https://guruweb.com.ar"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-slate-400 hover:text-[#00f2fe] transition-colors"
+        >
+          guruweb.com.ar
+        </a>
       </footer>
     </div>
   );

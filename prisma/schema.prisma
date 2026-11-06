@@ -46,7 +46,14 @@ model User {
   name          String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-  
+
+  // Monetización (Lemon Squeezy)
+  plan                   String    @default("free") // free | starter | pro | agencia
+  subscriptionStatus     String    @default("none") // none | on_trial | active | past_due | cancelled | expired
+  subscriptionEndsAt     DateTime? // próxima renovación (renews_at) o fin de la sub
+  lemonsqueezyCustomerId String?
+  lemonsqueezySubId      String?
+
   setterConfig  SetterConfig?
   igAccounts    IgAccount[]
   conversations Conversation[]
