@@ -1,6 +1,5 @@
 "use client";
 import React, { useState } from "react";
-import type { Metadata } from "next";
 import Link from "next/link";
 import {
   MessageCircle,
@@ -134,18 +133,6 @@ function InstagramIcon({ className = "size-4" }: { className?: string }) {
     </svg>
   );
 }
-
-// ... metadata, NAV_LINKS, FEATURES, STEPS, FAQS, etc.
-
-// Nota: Elimina las líneas originales de import y metadata si es necesario para evitar duplicados.
-// Como el agente debe ser cuidadoso con editar archivos grandes, esta es una aproximación.
-// En un caso real preferiría separar componentes en archivos independientes.
-
-export const metadata: Metadata = {
-  title: "Settingfly | El Setter Autónomo de Instagram que agenda clientes 24/7",
-  description:
-    "Convierte comentarios en Reels y mensajes directos en videollamadas agendadas 24/7 con IA. Cualifica, maneja objeciones y agenda en piloto automático.",
-};
 
 const NAV_LINKS = [
   { label: "Cómo funciona", href: "#como-funciona" },
