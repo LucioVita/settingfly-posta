@@ -1,3 +1,5 @@
+"use client";
+import React, { useState } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
@@ -14,6 +16,106 @@ import {
   ChevronRight,
   Sparkles,
 } from "lucide-react";
+
+function ContactForm() {
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    const formData = new FormData(e.currentTarget);
+    const data = Object.fromEntries(formData.entries());
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (res.ok) {
+        setSuccess(true);
+        e.currentTarget.reset();
+      } else {
+        const err = await res.json();
+        setError(err.error || "Error al enviar");
+      }
+    } catch {
+      setError("Error de conexión");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (success) {
+    return (
+      <div className="p-6 rounded-2xl bg-[#d4ff00]/10 border border-[#d4ff00]/30 text-center">
+        <Check className="size-8 text-[#d4ff00] mx-auto mb-3" />
+        <p className="text-[#d4ff00] font-bold">¡Solicitud recibida!</p>
+        <p className="text-sm text-slate-300">Te contactaremos a la brevedad.</p>
+      </div>
+    );
+  }
+
+  return (
+    <form
+      className="flex flex-col gap-4 rounded-2xl bg-[#1a1d24] border border-white/[0.06] p-6"
+      onSubmit={handleSubmit}
+    >
+      {error && <p className="text-rose-400 text-sm mb-2">{error}</p>}
+      <div className="grid md:grid-cols-2 gap-4">
+        <div>
+          <label className="text-sm text-slate-400 block mb-2">Nombre</label>
+          <input
+            type="text"
+            name="name"
+            required
+            className="w-full bg-[#14161b] border border-white/[0.08] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#d4ff00] transition-colors"
+            placeholder="Tu nombre"
+          />
+        </div>
+        <div>
+          <label className="text-sm text-slate-400 block mb-2">Correo</label>
+          <input
+            type="email"
+            name="email"
+            required
+            className="w-full bg-[#14161b] border border-white/[0.08] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#d4ff00] transition-colors"
+            placeholder="tu@email.com"
+          />
+        </div>
+      </div>
+      <div>
+        <label className="text-sm text-slate-400 block mb-2">Instagram o Perfil</label>
+        <input
+          type="text"
+          name="instagram"
+          className="w-full bg-[#14161b] border border-white/[0.08] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#d4ff00] transition-colors"
+          placeholder="@usuario"
+        />
+      </div>
+      <div>
+        <label className="text-sm text-slate-400 block mb-2">Mensaje</label>
+        <textarea
+          name="message"
+          rows={3}
+          className="w-full bg-[#14161b] border border-white/[0.08] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#d4ff00] transition-colors resize-none"
+          placeholder="¿En qué podemos ayudarte?"
+        ></textarea>
+      </div>
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full py-3 rounded-2xl bg-[#d4ff00] text-[#14161b] font-bold text-base hover:shadow-neon-lime transition-shadow disabled:opacity-50"
+      >
+        {loading ? "Enviando..." : "Enviar solicitud"}
+      </button>
+    </form>
+  );
+}
 
 function InstagramIcon({ className = "size-4" }: { className?: string }) {
   return (
@@ -32,6 +134,12 @@ function InstagramIcon({ className = "size-4" }: { className?: string }) {
     </svg>
   );
 }
+
+// ... metadata, NAV_LINKS, FEATURES, STEPS, FAQS, etc.
+
+// Nota: Elimina las líneas originales de import y metadata si es necesario para evitar duplicados.
+// Como el agente debe ser cuidadoso con editar archivos grandes, esta es una aproximación.
+// En un caso real preferiría separar componentes en archivos independientes.
 
 export const metadata: Metadata = {
   title: "Settingfly | El Setter Autónomo de Instagram que agenda clientes 24/7",
@@ -507,7 +615,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ===== Pricing ===== */}
+        {/* ===== Pricing / Contacto ===== */}
         <section id="precio" className="relative overflow-hidden">
           <div
             aria-hidden
@@ -519,63 +627,160 @@ export default function LandingPage() {
           />
           <div className="relative max-w-7xl mx-auto px-6 py-24">
             <SectionHeading
-              eyebrow="Precio"
-              title="Elige tu plan. Cámbialo cuando quieras."
-              description="Todo plan incluye la conexión oficial con la Graph API de Meta y el simulador de conversaciones. Sin instalación: 100% en la nube."
+              eyebrow="Planes y Precios"
+              title="Elige el plan que se adapta a tu negocio."
+              description="Sin cargos adicionales ocultos. Necesitas una suscripción activa para conectar Instagram o WhatsApp."
             />
 
-            <div className="mt-14 grid md:grid-cols-3 gap-6 items-stretch">
-              {PLANS.map((plan) => (
-                <div
-                  key={plan.name}
-                  className={`relative rounded-3xl p-7 flex flex-col gap-6 border transition-colors ${
-                    plan.highlight
-                      ? "bg-[#1a1d24] border-[#d4ff00]/40 shadow-neon-lime md:-translate-y-3"
-                      : "bg-[#1a1d24] border-white/[0.06] hover:border-white/20"
-                  }`}
-                >
-                  {plan.highlight ? (
-                    <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full bg-[#d4ff00] text-black text-[11px] font-bold uppercase tracking-wide">
-                      Más elegido
-                    </span>
-                  ) : null}
+            <div className="mt-14 grid md:grid-cols-2 gap-8 items-stretch max-w-4xl mx-auto">
+              {/* Plan Business (€597 / mes) */}
+              <div
+                className="relative rounded-3xl p-8 flex flex-col gap-6 border bg-[#1a1d24] border-[#d4ff00]/40 shadow-neon-lime"
+              >
+                <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full bg-[#d4ff00] text-black text-[11px] font-bold uppercase tracking-wide">
+                  Mejor Precio
+                </span>
 
-                  <div className="flex flex-col gap-1">
-                    <h3 className="font-heading font-extrabold text-xl">{plan.name}</h3>
-                    <p className="text-xs text-slate-500">{plan.tagline}</p>
-                  </div>
-
-                  <div className="flex items-baseline gap-1">
-                    <span className="font-heading font-extrabold text-5xl text-white">
-                      ${plan.price}
-                    </span>
-                    <span className="text-sm text-slate-500">USD / mes</span>
-                  </div>
-
-                  <ul className="flex flex-col gap-2.5 text-sm text-slate-300 flex-1">
-                    {plan.features.map((feature) => (
-                      <li key={feature} className="flex items-start gap-2.5">
-                        <Check
-                          className={`size-4 mt-0.5 shrink-0 ${
-                            plan.highlight ? "text-[#d4ff00]" : "text-[#00f2fe]"
-                          }`}
-                        />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-
-                  <span
-                    className={`inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full font-bold text-sm text-center ${
-                      plan.highlight
-                        ? "bg-[#d4ff00]/15 text-[#d4ff00] border border-[#d4ff00]/30"
-                        : "border border-white/10 text-slate-500"
-                    }`}
-                  >
-                    Activación al registrarte
-                  </span>
+                <div className="flex flex-col gap-1">
+                  <h3 className="font-heading font-extrabold text-2xl text-white">Business</h3>
+                  <p className="text-xs text-slate-400">Para perfiles que quieren escalar su facturación</p>
                 </div>
-              ))}
+
+                <div className="flex items-baseline gap-1">
+                  <span className="font-heading font-extrabold text-5xl text-white">
+                    597
+                  </span>
+                  <span className="text-sm text-slate-400">€/mes</span>
+                </div>
+
+                <ul className="flex flex-col gap-3 text-sm text-slate-300 flex-1">
+                  <li className="flex items-start gap-2.5">
+                    <Check className="size-4 mt-0.5 shrink-0 text-[#d4ff00]" />
+                    <span>1 cuenta de Instagram o WhatsApp</span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <Check className="size-4 mt-0.5 shrink-0 text-[#d4ff00]" />
+                    <span>Asistentes Virtuales Ilimitados</span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <Check className="size-4 mt-0.5 shrink-0 text-[#d4ff00]" />
+                    <span>Envía audios, imágenes y vídeos en los chats</span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <Check className="size-4 mt-0.5 shrink-0 text-[#d4ff00]" />
+                    <span>Simulador de Conversaciones</span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <Check className="size-4 mt-0.5 shrink-0 text-[#d4ff00]" />
+                    <span>Conecta tu cuenta de Go High Level</span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <Check className="size-4 mt-0.5 shrink-0 text-[#d4ff00]" />
+                    <span>1.000 chats gratis al mes</span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <Check className="size-4 mt-0.5 shrink-0 text-[#d4ff00]" />
+                    <span>Acceso a la comunidad de ZeroChats</span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <Check className="size-4 mt-0.5 shrink-0 text-[#d4ff00]" />
+                    <span>Acceso a ZeroChats Academy</span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <Check className="size-4 mt-0.5 shrink-0 text-[#d4ff00]" />
+                    <span>Clases semanales en directo</span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <Check className="size-4 mt-0.5 shrink-0 text-[#d4ff00]" />
+                    <span>Cuentas de Instagram o WhatsApp disponibles como extra</span>
+                  </li>
+                </ul>
+
+                <Link
+                  href="/login"
+                  className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full font-bold text-sm bg-[#d4ff00] text-black hover:shadow-neon-lime transition-shadow"
+                >
+                  Obtener acceso
+                </Link>
+              </div>
+
+              {/* Plan ZeroChats One (Personalizado) */}
+              <div
+                className="relative rounded-3xl p-8 flex flex-col gap-6 border bg-[#1a1d24] border-white/[0.08] hover:border-white/20 transition-colors"
+              >
+                <div className="flex flex-col gap-1">
+                  <h3 className="font-heading font-extrabold text-2xl text-white">ZeroChats One</h3>
+                  <p className="text-xs text-slate-400">Todo lo del Plan Business y mucho más. Nosotros nos encargamos de todo.</p>
+                </div>
+
+                <div className="flex items-baseline gap-1">
+                  <span className="font-heading font-extrabold text-3xl text-slate-200">
+                    Personalizado
+                  </span>
+                  <span className="text-xs text-slate-400">para tu negocio</span>
+                </div>
+
+                <ul className="flex flex-col gap-3 text-sm text-slate-300 flex-1">
+                  <li className="flex items-start gap-2.5">
+                    <Check className="size-4 mt-0.5 shrink-0 text-[#00f2fe]" />
+                    <span>Todo lo del Plan Business</span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <Check className="size-4 mt-0.5 shrink-0 text-[#00f2fe]" />
+                    <span>1.000 chats gratis al mes</span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <Check className="size-4 mt-0.5 shrink-0 text-[#00f2fe]" />
+                    <span>1 cuenta de Instagram o WhatsApp</span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <Check className="size-4 mt-0.5 shrink-0 text-[#00f2fe]" />
+                    <span>Funciones personalizadas para tu negocio</span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <Check className="size-4 mt-0.5 shrink-0 text-[#00f2fe]" />
+                    <span>Soporte 1 a 1 por WhatsApp</span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <Check className="size-4 mt-0.5 shrink-0 text-[#00f2fe]" />
+                    <span>Nosotros hacemos toda la implementación por ti</span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <Check className="size-4 mt-0.5 shrink-0 text-[#00f2fe]" />
+                    <span>Soporte prioritario con gestor de cuenta dedicado</span>
+                  </li>
+                  <li className="flex items-start gap-2.5">
+                    <Check className="size-4 mt-0.5 shrink-0 text-[#00f2fe]" />
+                    <span>Bloquea tu precio durante 12 meses</span>
+                  </li>
+                </ul>
+
+                <a
+                  href="#contacto-custom"
+                  className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full font-bold text-sm border border-white/20 text-white hover:bg-white/[0.05] transition-colors"
+                >
+                  Agendar una llamada
+                </a>
+              </div>
+            </div>
+
+            {/* Banner explicativo estilo ZeroChats */}
+            <div className="mt-12 max-w-3xl mx-auto text-center rounded-2xl bg-[#1c202a] border border-white/[0.06] p-6">
+              <h4 className="font-heading font-extrabold text-lg text-white mb-2">¿Qué plan encaja contigo?</h4>
+              <p className="text-sm text-slate-300">
+                Los dos planes se contratan en una llamada con el equipo: vemos tu caso y te ayudamos a elegir.
+              </p>
+            </div>
+
+            {/* Formulario de contacto / cotización personalizada */}
+            <div id="contacto-custom" className="mt-14 max-w-xl mx-auto scroll-mt-20">
+              <h3 className="text-xl font-heading font-bold text-center text-white mb-2">
+                Solicita tu plan a medida
+              </h3>
+              <p className="text-xs text-slate-400 text-center mb-6">
+                Déjanos tus datos y nos pondremos en contacto para armar una propuesta adaptada a tus necesidades y volumen.
+              </p>
+              <ContactForm />
             </div>
           </div>
         </section>

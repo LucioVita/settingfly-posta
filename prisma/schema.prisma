@@ -134,3 +134,22 @@ model Conversation {
   updatedAt         DateTime @updatedAt
 }
 
+model ContactRequest {
+  id             Int      @id @default(autoincrement())
+  userId         Int? // nullable: puede ser un visitante anónimo o un usuario logueado
+  user           User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  name           String
+  email          String
+  instagram      String? // @usuario o URL del perfil
+  businessName   String?
+  monthlyBudget String?
+  message        String?
+
+  status         String   @default("pending") // pending | reviewed | scheduled | closed
+  adminNote      String?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
