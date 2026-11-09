@@ -136,7 +136,7 @@ function InstagramIcon({ className = "size-4" }: { className?: string }) {
 
 const NAV_LINKS = [
   { label: "Cómo funciona", href: "#como-funciona" },
-  { label: "Precio", href: "#precio" },
+  { label: "Plan a medida", href: "#plan" },
   { label: "FAQ", href: "#faq" },
 ];
 
@@ -200,51 +200,6 @@ const STEPS = [
     title: "Agenda en automático",
     description:
       "La IA recibe los comentarios y DMs de tus campañas, cualifica a cada lead y le manda el link de agenda. Tú solo entras a cerrar la videollamada.",
-  },
-];
-
-const PLANS = [
-  {
-    name: "Starter",
-    price: 49,
-    tagline: "Para negocios que arrancan",
-    highlight: false,
-    features: [
-      "1 cuenta de Instagram vinculada",
-      "Setter IA con personalidad configurable",
-      "Captación de leads por comentarios",
-      "CRM con hasta 200 leads activos",
-      "Simulador de conversaciones",
-      "Soporte por email (24-48h)",
-    ],
-  },
-  {
-    name: "Pro",
-    price: 99,
-    tagline: "Para negocios en crecimiento",
-    highlight: true,
-    features: [
-      "Hasta 3 cuentas de Instagram",
-      "CRM con leads ilimitados y funnel visual",
-      "Follow-ups programados automáticos",
-      "Métricas por contenido (top 10)",
-      "Respuestas personalizadas + emojis",
-      "Soporte prioritario (< 24h)",
-    ],
-  },
-  {
-    name: "Agencia",
-    price: 249,
-    tagline: "Para agencias y equipos",
-    highlight: false,
-    features: [
-      "Cuentas de Instagram ilimitadas",
-      "Perfiles separados por cliente",
-      "Toda la potencia del plan Pro",
-      "Branding personalizado",
-      "Onboarding 1:1 con nuestro equipo",
-      "Soporte VIP + revisión de estrategia",
-    ],
   },
 ];
 
@@ -602,8 +557,8 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ===== Pricing / Contacto ===== */}
-        <section id="precio" className="relative overflow-hidden">
+        {/* ===== Plan a medida / Contacto ===== */}
+        <section id="plan" className="relative overflow-hidden">
           <div
             aria-hidden
             className="pointer-events-none absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-full opacity-10"
@@ -614,149 +569,59 @@ export default function LandingPage() {
           />
           <div className="relative max-w-7xl mx-auto px-6 py-24">
             <SectionHeading
-              eyebrow="Planes y Precios"
-              title="Elige el plan que se adapta a tu negocio."
-              description="Sin cargos adicionales ocultos. Necesitas una suscripción activa para conectar Instagram o WhatsApp."
+              eyebrow="Plan a medida"
+              title={
+                <>
+                  Sin tablas de precios.{" "}
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#d4ff00] to-[#00f2fe]">
+                    Un plan armado para tu negocio.
+                  </span>
+                </>
+              }
+              description="No publicamos tarifas: primero escuchamos tu caso, entendemos tu volumen de consultas y después armamos una propuesta con exactamente lo que tu negocio necesita, y nada más."
             />
 
-            <div className="mt-14 grid md:grid-cols-2 gap-8 items-stretch max-w-4xl mx-auto">
-              {/* Plan Business (€597 / mes) */}
-              <div
-                className="relative rounded-3xl p-8 flex flex-col gap-6 border bg-[#1a1d24] border-[#d4ff00]/40 shadow-neon-lime"
-              >
-                <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-1 rounded-full bg-[#d4ff00] text-black text-[11px] font-bold uppercase tracking-wide">
-                  Mejor Precio
-                </span>
-
-                <div className="flex flex-col gap-1">
-                  <h3 className="font-heading font-extrabold text-2xl text-white">Business</h3>
-                  <p className="text-xs text-slate-400">Para perfiles que quieren escalar su facturación</p>
-                </div>
-
-                <div className="flex items-baseline gap-1">
-                  <span className="font-heading font-extrabold text-5xl text-white">
-                    597
-                  </span>
-                  <span className="text-sm text-slate-400">€/mes</span>
-                </div>
-
-                <ul className="flex flex-col gap-3 text-sm text-slate-300 flex-1">
-                  <li className="flex items-start gap-2.5">
-                    <Check className="size-4 mt-0.5 shrink-0 text-[#d4ff00]" />
-                    <span>1 cuenta de Instagram o WhatsApp</span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <Check className="size-4 mt-0.5 shrink-0 text-[#d4ff00]" />
-                    <span>Asistentes Virtuales Ilimitados</span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <Check className="size-4 mt-0.5 shrink-0 text-[#d4ff00]" />
-                    <span>Envía audios, imágenes y vídeos en los chats</span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <Check className="size-4 mt-0.5 shrink-0 text-[#d4ff00]" />
-                    <span>Simulador de Conversaciones</span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <Check className="size-4 mt-0.5 shrink-0 text-[#d4ff00]" />
-                    <span>Conecta tu cuenta de Go High Level</span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <Check className="size-4 mt-0.5 shrink-0 text-[#d4ff00]" />
-                    <span>1.000 chats gratis al mes</span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <Check className="size-4 mt-0.5 shrink-0 text-[#d4ff00]" />
-                    <span>Acceso a la comunidad de ZeroChats</span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <Check className="size-4 mt-0.5 shrink-0 text-[#d4ff00]" />
-                    <span>Acceso a ZeroChats Academy</span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <Check className="size-4 mt-0.5 shrink-0 text-[#d4ff00]" />
-                    <span>Clases semanales en directo</span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <Check className="size-4 mt-0.5 shrink-0 text-[#d4ff00]" />
-                    <span>Cuentas de Instagram o WhatsApp disponibles como extra</span>
-                  </li>
-                </ul>
-
-                <Link
-                  href="/login"
-                  className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full font-bold text-sm bg-[#d4ff00] text-black hover:shadow-neon-lime transition-shadow"
+            <div className="mt-14 grid md:grid-cols-3 gap-6">
+              {[
+                {
+                  icon: Zap,
+                  title: "Sin tarifas escondidas",
+                  desc: "Nada de letra chica ni costos ocultos: la propuesta sale de una conversación con el equipo, no de una tabla genérica.",
+                },
+                {
+                  icon: Users,
+                  title: "Diseñado sobre tu caso",
+                  desc: "Vemos tu operación, tu canal y tu volumen de leads; el plan reúne solo lo que tu negocio necesita: ni un feature menos, ni uno de más.",
+                },
+                {
+                  icon: Repeat,
+                  title: "Escalas a tu ritmo",
+                  desc: "Empieza con lo justo y suma cuentas, funciones o volumen solo cuando tu operación lo pida.",
+                },
+              ].map((item) => (
+                <div
+                  key={item.title}
+                  className="rounded-3xl bg-[#1a1d24] border border-white/[0.06] p-7 flex flex-col gap-4 hover:border-[#d4ff00]/30 transition-colors"
                 >
-                  Obtener acceso
-                </Link>
-              </div>
-
-              {/* Plan ZeroChats One (Personalizado) */}
-              <div
-                className="relative rounded-3xl p-8 flex flex-col gap-6 border bg-[#1a1d24] border-white/[0.08] hover:border-white/20 transition-colors"
-              >
-                <div className="flex flex-col gap-1">
-                  <h3 className="font-heading font-extrabold text-2xl text-white">ZeroChats One</h3>
-                  <p className="text-xs text-slate-400">Todo lo del Plan Business y mucho más. Nosotros nos encargamos de todo.</p>
+                  <div className="h-12 w-12 rounded-2xl bg-[#d4ff00]/10 border border-[#d4ff00]/25 flex items-center justify-center">
+                    <item.icon className="size-6 text-[#d4ff00]" />
+                  </div>
+                  <h3 className="text-lg font-heading font-bold">{item.title}</h3>
+                  <p className="text-sm text-slate-400 leading-relaxed">
+                    {item.desc}
+                  </p>
                 </div>
-
-                <div className="flex items-baseline gap-1">
-                  <span className="font-heading font-extrabold text-3xl text-slate-200">
-                    Personalizado
-                  </span>
-                  <span className="text-xs text-slate-400">para tu negocio</span>
-                </div>
-
-                <ul className="flex flex-col gap-3 text-sm text-slate-300 flex-1">
-                  <li className="flex items-start gap-2.5">
-                    <Check className="size-4 mt-0.5 shrink-0 text-[#00f2fe]" />
-                    <span>Todo lo del Plan Business</span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <Check className="size-4 mt-0.5 shrink-0 text-[#00f2fe]" />
-                    <span>1.000 chats gratis al mes</span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <Check className="size-4 mt-0.5 shrink-0 text-[#00f2fe]" />
-                    <span>1 cuenta de Instagram o WhatsApp</span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <Check className="size-4 mt-0.5 shrink-0 text-[#00f2fe]" />
-                    <span>Funciones personalizadas para tu negocio</span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <Check className="size-4 mt-0.5 shrink-0 text-[#00f2fe]" />
-                    <span>Soporte 1 a 1 por WhatsApp</span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <Check className="size-4 mt-0.5 shrink-0 text-[#00f2fe]" />
-                    <span>Nosotros hacemos toda la implementación por ti</span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <Check className="size-4 mt-0.5 shrink-0 text-[#00f2fe]" />
-                    <span>Soporte prioritario con gestor de cuenta dedicado</span>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <Check className="size-4 mt-0.5 shrink-0 text-[#00f2fe]" />
-                    <span>Bloquea tu precio durante 12 meses</span>
-                  </li>
-                </ul>
-
-                <a
-                  href="#contacto-custom"
-                  className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full font-bold text-sm border border-white/20 text-white hover:bg-white/[0.05] transition-colors"
-                >
-                  Agendar una llamada
-                </a>
-              </div>
+              ))}
             </div>
 
-            {/* Banner explicativo estilo ZeroChats */}
-            <div className="mt-12 max-w-3xl mx-auto text-center rounded-2xl bg-[#1c202a] border border-white/[0.06] p-6">
-              <h4 className="font-heading font-extrabold text-lg text-white mb-2">¿Qué plan encaja contigo?</h4>
-              <p className="text-sm text-slate-300">
-                Los dos planes se contratan en una llamada con el equipo: vemos tu caso y te ayudamos a elegir.
-              </p>
+            <div className="mt-12 text-center">
+              <a
+                href="#contacto-custom"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-[#d4ff00] text-black font-bold text-base hover:shadow-neon-lime transition-shadow"
+              >
+                Solicitar mi plan a medida
+                <ChevronRight className="size-4.5" />
+              </a>
             </div>
 
             {/* Formulario de contacto / cotización personalizada */}
