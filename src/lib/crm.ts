@@ -1,7 +1,7 @@
 // web/src/lib/crm.ts
 // Autenticación del CRM interno (/crm).
-// Credenciales por variables de entorno CRM_USERNAME / CRM_PASSWORD (configuradas
-// en el panel de Hostinger). Sesión via JWT firmado en cookie HttpOnly.
+// Credenciales por variable de entorno CRM_USERS_JSON (JSON con usuario -> clave),
+// configurada en el panel de Hostinger. Sesión via JWT firmado en cookie HttpOnly.
 
 import crypto from "crypto";
 import { SignJWT, jwtVerify } from "jose";
@@ -25,8 +25,6 @@ export const CRM_STATUS_LABELS: Record<CrmStatus, string> = {
 const CRM_SECRET = new TextEncoder().encode(
   process.env.AUTH_SECRET || "autosetter_super_secret_jwt_key_2026_dev_fallback"
 );
-
-// Exporting only necessary functions
 
 export function verifyCrmCredentials(username: string, password: string): boolean {
   const usersRaw = process.env.CRM_USERS_JSON;
