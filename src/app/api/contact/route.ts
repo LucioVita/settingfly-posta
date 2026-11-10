@@ -8,6 +8,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const name = String(body?.name || "").trim();
     const email = String(body?.email || "").trim();
+    const phone = String(body?.phone || "").trim();
     const instagram = String(body?.instagram || "").trim();
     const businessName = String(body?.businessName || "").trim();
     const monthlyBudget = String(body?.monthlyBudget || "").trim();
@@ -43,6 +44,7 @@ export async function POST(request: Request) {
         userId,
         name,
         email,
+        phone: phone || null,
         instagram: instagram || null,
         businessName: businessName || null,
         monthlyBudget: monthlyBudget || null,

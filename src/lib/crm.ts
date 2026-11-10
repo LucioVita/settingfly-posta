@@ -26,30 +26,26 @@ const CRM_SECRET = new TextEncoder().encode(
   process.env.AUTH_SECRET || "autosetter_super_secret_jwt_key_2026_dev_fallback"
 );
 
-export function getCrmCredentials(): { username: string | undefined; password: string | undefined } {
-  return {
-    username: process.env.CRM_USERNAME,
-    password: process.env.CRM_PASSWORD,
-  };
-}
+// Exporting only necessary functions
 
-/**
- * Compara credenciales contra las variables de entorno con navegación
- * en tiempo "casi constante" para evitar filtros de longitud.
- */
 export function verifyCrmCredentials(username: string, password: string): boolean {
-  const { username: expectedUser, password: expectedPass } = getCrmCredentials();
-  if (!expectedUser || !expectedPass) return false;
+  const usersRaw = process.env.CRM_USERS_JSON;
+  if (!usersRaw) return false;
 
-  const a = Buffer.from(normalize(username));
-  const b = Buffer.from(normalize(expectedUser));
-  const sameUser = a.length === b.length && crypto.timingSafeEqual(a, b);
+  let users: Record<string, string>;
+  try {
+    users = JSON.parse(usersRaw);
+  } catch {
+    return false;
+  }
+
+  const expectedPass = users[username];
+  if (!expectedPass) return false;
 
   const c = Buffer.from(normalize(password));
   const d = Buffer.from(normalize(expectedPass));
-  const samePass = c.length === d.length && crypto.timingSafeEqual(c, d);
 
-  return sameUser && samePass;
+  return c.length === d.length && crypto.timingSafeEqual(c, d);
 }
 
 function normalize(value: string): string {

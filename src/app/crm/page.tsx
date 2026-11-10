@@ -42,6 +42,7 @@ interface CrmLead {
   name: string;
   email: string;
   instagram: string | null;
+  phone: string | null;
   businessName: string | null;
   monthlyBudget: string | null;
   message: string | null;
@@ -472,6 +473,10 @@ export default function CrmPage() {
                     ) : (
                       <span className="text-xs text-slate-600">—</span>
                     )}
+                  </div>
+                  <div className="rounded-2xl bg-[#20242e] border border-white/[0.05] px-4 py-3 flex flex-col gap-0.5">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500">Teléfono</span>
+                    <span className="text-xs text-slate-200">{lead.phone || "—"}</span>
                   </div>
                   <div className="rounded-2xl bg-[#20242e] border border-white/[0.05] px-4 py-3 flex flex-col gap-0.5">
                     <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500">Negocio</span>

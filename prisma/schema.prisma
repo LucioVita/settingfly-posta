@@ -143,6 +143,7 @@ model ContactRequest {
   name           String
   email          String
   instagram      String? // @usuario o URL del perfil
+  phone          String?
   businessName   String?
   monthlyBudget String?
   message        String?

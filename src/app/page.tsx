@@ -87,14 +87,45 @@ function ContactForm() {
           />
         </div>
       </div>
-      <div>
-        <label className="text-sm text-slate-400 block mb-2">Instagram o Perfil</label>
-        <input
-          type="text"
-          name="instagram"
-          className="w-full bg-[#14161b] border border-white/[0.08] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#d4ff00] transition-colors"
-          placeholder="@usuario"
-        />
+      <div className="grid md:grid-cols-2 gap-4">
+        <div>
+          <label className="text-sm text-slate-400 block mb-2">Nombre del negocio</label>
+          <input
+            type="text"
+            name="businessName"
+            className="w-full bg-[#14161b] border border-white/[0.08] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#d4ff00] transition-colors"
+            placeholder="Nombre de tu empresa"
+          />
+        </div>
+        <div>
+          <label className="text-sm text-slate-400 block mb-2">Presupuesto mensual</label>
+          <input
+            type="text"
+            name="monthlyBudget"
+            className="w-full bg-[#14161b] border border-white/[0.08] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#d4ff00] transition-colors"
+            placeholder="Ej: $500 - $1000"
+          />
+        </div>
+      </div>
+      <div className="grid md:grid-cols-2 gap-4">
+        <div>
+          <label className="text-sm text-slate-400 block mb-2">Instagram o Perfil</label>
+          <input
+            type="text"
+            name="instagram"
+            className="w-full bg-[#14161b] border border-white/[0.08] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#d4ff00] transition-colors"
+            placeholder="@usuario"
+          />
+        </div>
+        <div>
+          <label className="text-sm text-slate-400 block mb-2">Teléfono</label>
+          <input
+            type="tel"
+            name="phone"
+            className="w-full bg-[#14161b] border border-white/[0.08] rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#d4ff00] transition-colors"
+            placeholder="+54 9 11 ..."
+          />
+        </div>
       </div>
       <div>
         <label className="text-sm text-slate-400 block mb-2">Mensaje</label>
