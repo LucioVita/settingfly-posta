@@ -28,21 +28,33 @@ const CRM_SECRET = new TextEncoder().encode(
 
 export function verifyCrmCredentials(username: string, password: string): boolean {
   const usersRaw = process.env.CRM_USERS_JSON;
-  if (!usersRaw) return false;
-
-  let users: Record<string, string>;
-  try {
-    users = JSON.parse(usersRaw);
-  } catch {
-    return false;
+  
+  if (usersRaw) {
+    try {
+      const users: Record<string, string> = JSON.parse(usersRaw);
+      const expectedPass = users[username];
+      if (expectedPass) {
+        return safeCompare(password, expectedPass);
+      }
+    } catch {
+      // JSON inválido, seguimos al fallback
+    }
   }
 
-  const expectedPass = users[username];
-  if (!expectedPass) return false;
+  // Fallback a CRM_USERNAME y CRM_PASSWORD (un solo usuario)
+  const expectedUser = process.env.CRM_USERNAME;
+  const expectedPass = process.env.CRM_PASSWORD;
 
+  if (expectedUser && expectedPass && username === expectedUser) {
+    return safeCompare(password, expectedPass);
+  }
+
+  return false;
+}
+
+function safeCompare(password: string, expected: string): boolean {
   const c = Buffer.from(normalize(password));
-  const d = Buffer.from(normalize(expectedPass));
-
+  const d = Buffer.from(normalize(expected));
   return c.length === d.length && crypto.timingSafeEqual(c, d);
 }
 

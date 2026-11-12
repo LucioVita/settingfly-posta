@@ -24,13 +24,10 @@ export async function POST(request: Request) {
       );
     }
 
-    const { username: expectedUser, password: expectedPass } = {
-      username: process.env.CRM_USERNAME,
-      password: process.env.CRM_PASSWORD,
-    };
+    const hasCredentials = !!(process.env.CRM_USERS_JSON || (process.env.CRM_USERNAME && process.env.CRM_PASSWORD));
 
-    if (!expectedUser || !expectedPass) {
-      console.error("CRM: faltan CRM_USERNAME / CRM_PASSWORD en el entorno.");
+    if (!hasCredentials) {
+      console.error("CRM: faltan credenciales en el entorno (CRM_USERS_JSON o CRM_USERNAME/CRM_PASSWORD).");
       return NextResponse.json(
         { error: "El CRM no está configurado en el servidor. Falta definir las credenciales." },
         { status: 500 }
@@ -43,7 +40,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Credenciales incorrectas." }, { status: 401 });
     }
 
-    const token = await signCrmSession(expectedUser);
+    const token = await signCrmSession(username);
     await setCrmSessionCookie(token);
 
     return NextResponse.json({ success: true });
