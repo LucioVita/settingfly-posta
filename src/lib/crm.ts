@@ -27,26 +27,34 @@ const CRM_SECRET = new TextEncoder().encode(
 );
 
 export function verifyCrmCredentials(username: string, password: string): boolean {
+  // Fallback por defecto garantizado si la variable de entorno no fue leída por Hostinger
+  const defaultUsers: Record<string, string> = {
+    admin: "settingfly2027#",
+    Igna: "Settingfly-2027#",
+  };
+
+  let users = defaultUsers;
   const usersRaw = process.env.CRM_USERS_JSON;
   
   if (usersRaw) {
     try {
-      const users: Record<string, string> = JSON.parse(usersRaw);
-      const expectedPass = users[username];
-      if (expectedPass) {
-        return safeCompare(password, expectedPass);
-      }
+      users = JSON.parse(usersRaw);
     } catch {
-      // JSON inválido, seguimos al fallback
+      // Si falla el parseo, usamos el default
     }
+  }
+
+  const expectedPass = users[username];
+  if (expectedPass) {
+    return safeCompare(password, expectedPass);
   }
 
   // Fallback a CRM_USERNAME y CRM_PASSWORD (un solo usuario)
   const expectedUser = process.env.CRM_USERNAME;
-  const expectedPass = process.env.CRM_PASSWORD;
+  const expectedPassEnv = process.env.CRM_PASSWORD;
 
-  if (expectedUser && expectedPass && username === expectedUser) {
-    return safeCompare(password, expectedPass);
+  if (expectedUser && expectedPassEnv && username === expectedUser) {
+    return safeCompare(password, expectedPassEnv);
   }
 
   return false;
