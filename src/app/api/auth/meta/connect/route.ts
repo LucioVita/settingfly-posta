@@ -4,9 +4,11 @@ import { getCurrentUser } from "@/lib/auth";
 
 export async function GET(request: Request) {
   try {
+    const appUrl = process.env.NEXTAUTH_URL || process.env.APP_URL || "https://settingfly.com";
+
     const user = await getCurrentUser();
     if (!user) {
-      return NextResponse.redirect(new URL("/login?error=unauthorized", request.url));
+      return NextResponse.redirect(`${appUrl}/login?error=unauthorized`);
     }
 
     const appId = process.env.META_APP_ID;
