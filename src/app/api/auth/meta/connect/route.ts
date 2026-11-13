@@ -19,7 +19,6 @@ export async function GET(request: Request) {
       );
     }
 
-    const appUrl = process.env.NEXTAUTH_URL || process.env.APP_URL || "https://settingfly.com";
     const redirectUri = `${appUrl}/api/auth/meta/callback`;
 
     // Permisos requeridos para leer y contestar mensajes y comentarios de Instagram
