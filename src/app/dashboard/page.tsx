@@ -88,6 +88,7 @@ export default function App() {
   const [newIgToken, setNewIgToken] = useState("");
   const [connectLoading, setConnectLoading] = useState(false);
   const [connectError, setConnectError] = useState<string | null>(null);
+  const [showManualConnect, setShowManualConnect] = useState(false);
 
   // Toast feedback
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -171,6 +172,22 @@ export default function App() {
       }
     }
     loadInitialData();
+
+    // Comprobar parámetros devueltos por el callback de Meta OAuth
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      const metaSuccess = urlParams.get("meta_success");
+      const metaError = urlParams.get("meta_error");
+      const connectedCount = urlParams.get("connected");
+
+      if (metaSuccess) {
+        triggerToast(`¡Conexión exitosa con Meta! (${connectedCount || 1} cuenta/s vinculadas)`);
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } else if (metaError) {
+        triggerToast(`Error al conectar con Meta: ${decodeURIComponent(metaError)}`, "error");
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
   }, []);
 
   const triggerToast = (msg: string, type: "success" | "error" = "success") => {
@@ -767,11 +784,11 @@ export default function App() {
               )}
             </div>
 
-            {/* Formulario de Conexión */}
+            {/* Conexión Automática / Manual */}
             <div className="border-t border-white/[0.08] pt-5">
               <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
                 <InstagramIcon className="size-3.5 text-pink-400" />
-                <span>{igAccounts.length > 0 ? "Vincular otra cuenta de Instagram" : "Vincular cuenta de Instagram"}</span>
+                <span>{igAccounts.length > 0 ? "Vincular otra cuenta" : "Vincular cuenta de Instagram"}</span>
               </h4>
 
               {connectError && (
@@ -781,59 +798,82 @@ export default function App() {
                 </div>
               )}
 
-              <form onSubmit={handleConnectIgAccount} className="space-y-3">
-                <div>
-                  <label className="block text-[11px] font-medium text-slate-300 mb-1">Nombre de usuario (@)</label>
-                  <input
-                    type="text"
-                    placeholder="@minegocio_oficial"
-                    value={newIgUsername}
-                    onChange={(e) => setNewIgUsername(e.target.value)}
-                    required
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#14161b] border border-white/[0.1] text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#d4ff00] transition-colors"
-                  />
-                </div>
+              {/* BOTÓN OFICIAL DE LOGIN CON FACEBOOK / META */}
+              <a
+                href="/api/auth/meta/connect"
+                className="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-[#1877F2] to-[#0D65D9] hover:from-[#166fe5] hover:to-[#0b58be] text-white font-bold text-xs flex items-center justify-center gap-2.5 transition-all shadow-lg shadow-blue-500/20 active:scale-[0.99] mb-3"
+              >
+                <svg className="size-4 fill-current" viewBox="0 0 24 24">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                </svg>
+                <span>Conectar con Facebook e Instagram (1 Clic)</span>
+              </a>
+              <p className="text-[11px] text-slate-400 text-center mb-4">
+                Detecta tus cuentas profesionales y activa los webhooks automáticamente sin tocar código.
+              </p>
 
-                <div>
-                  <label className="block text-[11px] font-medium text-slate-300 mb-1">Instagram Business Account ID</label>
-                  <input
-                    type="text"
-                    placeholder="Ej: 17841405392817263"
-                    value={newIgId}
-                    onChange={(e) => setNewIgId(e.target.value)}
-                    required
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#14161b] border border-white/[0.1] text-xs text-white placeholder-slate-500 font-mono focus:outline-none focus:border-[#d4ff00] transition-colors"
-                  />
-                  <p className="text-[10px] text-slate-500 mt-1">Lo encuentras en developers.facebook.com o en la configuración de tu página de Facebook.</p>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-medium text-slate-300 mb-1">Page Access Token de Meta</label>
-                  <input
-                    type="password"
-                    placeholder="EAAG..."
-                    value={newIgToken}
-                    onChange={(e) => setNewIgToken(e.target.value)}
-                    required
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#14161b] border border-white/[0.1] text-xs text-white placeholder-slate-500 font-mono focus:outline-none focus:border-[#d4ff00] transition-colors"
-                  />
-                </div>
-
+              {/* Desplegable para Conexión Manual (Avanzado) */}
+              <div className="pt-2 border-t border-white/[0.04]">
                 <button
-                  type="submit"
-                  disabled={connectLoading}
-                  className="w-full py-2.5 rounded-xl bg-[#d4ff00] hover:bg-[#c6f000] text-[#14161b] font-bold text-xs flex items-center justify-center gap-2 transition-all disabled:opacity-50 shadow-neon-lime"
+                  type="button"
+                  onClick={() => setShowManualConnect(!showManualConnect)}
+                  className="w-full py-1.5 text-[11px] text-slate-500 hover:text-slate-300 flex items-center justify-center gap-1 transition-colors"
                 >
-                  {connectLoading ? (
-                    <RefreshCw className="size-4 animate-spin" />
-                  ) : (
-                    <>
-                      <InstagramIcon className="size-4" />
-                      <span>Guardar y Conectar Cuenta</span>
-                    </>
-                  )}
+                  <span>{showManualConnect ? "Ocultar conexión manual" : "⚙️ ¿Prefieres ingresar Token e ID manualmente?"}</span>
                 </button>
-              </form>
+
+                {showManualConnect && (
+                  <form onSubmit={handleConnectIgAccount} className="space-y-3 mt-3 pt-3 border-t border-white/[0.06] animate-fadeIn">
+                    <div>
+                      <label className="block text-[11px] font-medium text-slate-300 mb-1">Nombre de usuario (@)</label>
+                      <input
+                        type="text"
+                        placeholder="@minegocio_oficial"
+                        value={newIgUsername}
+                        onChange={(e) => setNewIgUsername(e.target.value)}
+                        required
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#14161b] border border-white/[0.1] text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#d4ff00] transition-colors"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-medium text-slate-300 mb-1">Instagram Business Account ID</label>
+                      <input
+                        type="text"
+                        placeholder="Ej: 17841405392817263"
+                        value={newIgId}
+                        onChange={(e) => setNewIgId(e.target.value)}
+                        required
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#14161b] border border-white/[0.1] text-xs text-white placeholder-slate-500 font-mono focus:outline-none focus:border-[#d4ff00] transition-colors"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-medium text-slate-300 mb-1">Page Access Token de Meta</label>
+                      <input
+                        type="password"
+                        placeholder="EAAG..."
+                        value={newIgToken}
+                        onChange={(e) => setNewIgToken(e.target.value)}
+                        required
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-[#14161b] border border-white/[0.1] text-xs text-white placeholder-slate-500 font-mono focus:outline-none focus:border-[#d4ff00] transition-colors"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={connectLoading}
+                      className="w-full py-2.5 rounded-xl bg-white/[0.08] hover:bg-white/[0.12] text-slate-200 font-medium text-xs flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+                    >
+                      {connectLoading ? (
+                        <RefreshCw className="size-4 animate-spin" />
+                      ) : (
+                        <span>Guardar credenciales manuales</span>
+                      )}
+                    </button>
+                  </form>
+                )}
+              </div>
             </div>
 
             {/* Botón WhatsApp (Exacto ZeroChats) */}
