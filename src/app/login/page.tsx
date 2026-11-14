@@ -22,10 +22,8 @@ import {
 
 export default function LoginPage() {
   const router = useRouter();
-  const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -38,31 +36,26 @@ export default function LoginPage() {
     setSuccessMessage("");
 
     try {
-      const endpoint = mode === "login" ? "/api/auth/login" : "/api/auth/register";
-      const payload = mode === "login" ? { email, password } : { email, password, name };
-
-      const res = await fetch(endpoint, {
+      const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        setErrorMessage(data.error || "Error al procesar la solicitud.");
+        setErrorMessage(data.error || "Credenciales incorrectas.");
         setIsLoading(false);
         return;
       }
 
-      setSuccessMessage(
-        mode === "login" ? "¡Sesión iniciada! Redirigiendo..." : "¡Cuenta creada exitosamente! Redirigiendo..."
-      );
+      setSuccessMessage("¡Sesión iniciada! Redirigiendo a tu consola...");
 
       setTimeout(() => {
         router.push("/dashboard");
         router.refresh();
-      }, 1000);
+      }, 800);
     } catch {
       setErrorMessage("Error de conexión al servidor. Inténtalo de nuevo.");
       setIsLoading(false);
@@ -70,9 +63,8 @@ export default function LoginPage() {
   };
 
   const handleQuickDemo = () => {
-    setEmail("demo@settingfly.com");
-    setPassword("password123");
-    setName("Agencia Growth Pro");
+    setEmail("admin@settingfly.com");
+    setPassword("admin123456");
   };
 
   return (
@@ -161,43 +153,11 @@ export default function LoginPage() {
 
           <div className="text-center mb-6">
             <h2 className="text-xl font-heading font-extrabold text-white">
-              {mode === "login" ? "Iniciar Sesión" : "Crear Cuenta Nueva"}
+              Iniciar Sesión
             </h2>
             <p className="text-xs text-slate-400 mt-1">
-              {mode === "login"
-                ? "Ingresa con tus credenciales para administrar tus setters."
-                : "Configura tu asistente IA en menos de 2 minutos."}
+              Ingresa con tus credenciales para administrar tus setters.
             </p>
-          </div>
-
-          {/* Mode Switcher Pills */}
-          <div className="flex bg-[#14161b] p-1 rounded-2xl mb-6 border border-white/[0.06]">
-            <button
-              type="button"
-              onClick={() => {
-                setMode("login");
-                setErrorMessage("");
-                setSuccessMessage("");
-              }}
-              className={`flex-1 py-2.5 rounded-xl text-xs font-heading font-bold transition-all ${
-                mode === "login" ? "bg-[#d4ff00] text-[#14161b] shadow-neon-lime" : "text-slate-400 hover:text-white"
-              }`}
-            >
-              Iniciar Sesión
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setMode("register");
-                setErrorMessage("");
-                setSuccessMessage("");
-              }}
-              className={`flex-1 py-2.5 rounded-xl text-xs font-heading font-bold transition-all ${
-                mode === "register" ? "bg-[#d4ff00] text-[#14161b] shadow-neon-lime" : "text-slate-400 hover:text-white"
-              }`}
-            >
-              Registrarme
-            </button>
           </div>
 
           {/* Feedback Alerts */}
@@ -217,23 +177,6 @@ export default function LoginPage() {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            {mode === "register" && (
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-slate-300">Nombre de tu Marca o Agencia</label>
-                <div className="relative flex items-center">
-                  <Building className="size-4 text-slate-400 absolute left-4 pointer-events-none" />
-                  <input
-                    type="text"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Ej. Convexa Growth"
-                    className="w-full bg-[#14161b] border border-white/[0.08] rounded-2xl pl-11 pr-4 py-3 text-xs text-white focus:outline-none focus:border-[#d4ff00] transition-colors placeholder:text-slate-500 font-medium"
-                  />
-                </div>
-              </div>
-            )}
-
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold text-slate-300">Correo Electrónico</label>
               <div className="relative flex items-center">
@@ -243,7 +186,7 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@tuagencia.com"
+                  placeholder="admin@settingfly.com"
                   className="w-full bg-[#14161b] border border-white/[0.08] rounded-2xl pl-11 pr-4 py-3 text-xs text-white focus:outline-none focus:border-[#d4ff00] transition-colors placeholder:text-slate-500 font-medium"
                 />
               </div>
@@ -252,15 +195,13 @@ export default function LoginPage() {
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-semibold text-slate-300">Contraseña</label>
-                {mode === "login" && (
-                  <button
-                    type="button"
-                    onClick={handleQuickDemo}
-                    className="text-[10px] font-mono text-[#00f2fe] hover:underline"
-                  >
-                    Rellenar datos demo
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={handleQuickDemo}
+                  className="text-[10px] font-mono text-[#00f2fe] hover:underline"
+                >
+                  Rellenar datos demo
+                </button>
               </div>
               <div className="relative flex items-center">
                 <Lock className="size-4 text-slate-400 absolute left-4 pointer-events-none" />
@@ -269,7 +210,7 @@ export default function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder={mode === "login" ? "Ingresa tu contraseña" : "Mínimo 6 caracteres"}
+                  placeholder="Ingresa tu contraseña"
                   className="w-full bg-[#14161b] border border-white/[0.08] rounded-2xl pl-11 pr-11 py-3 text-xs text-white focus:outline-none focus:border-[#d4ff00] transition-colors placeholder:text-slate-500 font-medium"
                 />
                 <button
@@ -287,26 +228,21 @@ export default function LoginPage() {
               disabled={isLoading}
               className="mt-2 w-full py-3.5 rounded-2xl bg-[#d4ff00] hover:bg-[#c6f000] text-[#14161b] font-heading font-extrabold text-xs uppercase tracking-wider shadow-neon-lime transition-all flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              <span>{isLoading ? "Procesando..." : mode === "login" ? "Ingresar a mi Consola" : "Crear Cuenta & Comenzar"}</span>
+              <span>{isLoading ? "Procesando..." : "Ingresar a mi Consola"}</span>
               <ArrowRight className="size-4" />
             </button>
           </form>
 
-          {/* Footer note */}
+          {/* Footer note: Redirigir a solicitar plan a medida */}
           <div className="mt-6 pt-5 border-t border-white/[0.08] text-center">
             <span className="text-[11px] text-slate-400">
-              {mode === "login" ? "¿Aún no tienes cuenta?" : "¿Ya tienes una cuenta registrada?"}{" "}
-              <button
-                type="button"
-                onClick={() => {
-                  setMode(mode === "login" ? "register" : "login");
-                  setErrorMessage("");
-                  setSuccessMessage("");
-                }}
+              ¿Aún no tienes acceso?{" "}
+              <Link
+                href="/#contacto-custom"
                 className="text-[#d4ff00] font-bold hover:underline"
               >
-                {mode === "login" ? "Regístrate aquí" : "Inicia sesión"}
-              </button>
+                Solicita tu plan a medida aquí
+              </Link>
             </span>
           </div>
         </div>

@@ -634,40 +634,11 @@ export default function App() {
             </div>
 
             <h3 className="text-lg font-heading font-bold text-center text-white mb-1">
-              {authMode === "login" ? "Bienvenido de Vuelta" : "Crea tu Cuenta"}
+              Iniciar Sesión
             </h3>
             <p className="text-xs text-slate-400 text-center mb-6">
-              {authMode === "login"
-                ? "Accede para gestionar tu Setter IA y sincronizar Instagram."
-                : "Automatiza tus DMs y llamadas de ventas con IA en 2 minutos."}
+              Accede para gestionar tu Setter IA y sincronizar Instagram.
             </p>
-
-            <div className="flex bg-[#14161b] p-1 rounded-2xl mb-5 border border-white/[0.05]">
-              <button
-                type="button"
-                onClick={() => {
-                  setAuthMode("login");
-                  setAuthError("");
-                }}
-                className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
-                  authMode === "login" ? "bg-[#d4ff00] text-[#14161b] shadow-neon-lime" : "text-slate-400 hover:text-white"
-                }`}
-              >
-                Iniciar Sesión
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setAuthMode("register");
-                  setAuthError("");
-                }}
-                className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
-                  authMode === "register" ? "bg-[#d4ff00] text-[#14161b] shadow-neon-lime" : "text-slate-400 hover:text-white"
-                }`}
-              >
-                Registrarme
-              </button>
-            </div>
 
             {authError && (
               <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-medium flex items-center gap-2">
@@ -677,20 +648,6 @@ export default function App() {
             )}
 
             <form onSubmit={handleAuthSubmit} className="flex flex-col gap-3.5">
-              {authMode === "register" && (
-                <div>
-                  <label className="text-[11px] font-semibold text-slate-300 block mb-1">Nombre o Agencia</label>
-                  <input
-                    type="text"
-                    required
-                    value={authName}
-                    onChange={(e) => setAuthName(e.target.value)}
-                    placeholder="Ej. Convexa Growth"
-                    className="w-full bg-[#14161b] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#d4ff00] transition-colors"
-                  />
-                </div>
-              )}
-
               <div>
                 <label className="text-[11px] font-semibold text-slate-300 block mb-1">Correo Electrónico</label>
                 <input
@@ -698,7 +655,7 @@ export default function App() {
                   required
                   value={authEmail}
                   onChange={(e) => setAuthEmail(e.target.value)}
-                  placeholder="admin@tuagencia.com"
+                  placeholder="admin@settingfly.com"
                   className="w-full bg-[#14161b] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#d4ff00] transition-colors"
                 />
               </div>
@@ -710,7 +667,7 @@ export default function App() {
                   required
                   value={authPassword}
                   onChange={(e) => setAuthPassword(e.target.value)}
-                  placeholder="Mínimo 6 caracteres"
+                  placeholder="Ingresa tu contraseña"
                   className="w-full bg-[#14161b] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#d4ff00] transition-colors"
                 />
               </div>
@@ -720,9 +677,21 @@ export default function App() {
                 disabled={authLoading}
                 className="mt-2 w-full py-3 rounded-2xl bg-[#d4ff00] hover:bg-[#c6f000] text-[#14161b] font-heading font-extrabold text-xs uppercase tracking-wider shadow-neon-lime transition-all disabled:opacity-50"
               >
-                {authLoading ? "Procesando..." : authMode === "login" ? "Ingresar a mi Consola" : "Crear mi Cuenta Gratis"}
+                {authLoading ? "Procesando..." : "Ingresar a mi Consola"}
               </button>
             </form>
+
+            <div className="mt-5 pt-4 border-t border-white/[0.08] text-center">
+              <span className="text-[11px] text-slate-400">
+                ¿Aún no tienes cuenta?{" "}
+                <a
+                  href="/#contacto-custom"
+                  className="text-[#d4ff00] font-bold hover:underline"
+                >
+                  Solicita tu plan a medida aquí
+                </a>
+              </span>
+            </div>
           </div>
         </div>
       )}
