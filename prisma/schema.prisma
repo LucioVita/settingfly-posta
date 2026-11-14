@@ -40,7 +40,7 @@ model SetterConfig {
   bookingType         BookingType  @default(calendly)
   bookingUrl          String       @default("https://settingfly.com/demo")
   ctaHook             String       @default("Sesión de diagnóstico de 15 minutos sin costo")
-  keywords            String       @db.LongText
+  keywords            Json
   triggerComments     Boolean      @default(true)
   triggerDms          Boolean      @default(true)
   triggerStories      Boolean      @default(false)
