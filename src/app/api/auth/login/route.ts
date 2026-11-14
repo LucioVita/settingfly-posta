@@ -54,10 +54,10 @@ export async function POST(request: Request) {
         name: user.name,
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error en /api/auth/login:", error);
     return NextResponse.json(
-      { error: "Error interno del servidor al iniciar sesión." },
+      { error: "Error interno del servidor al iniciar sesión.", details: error?.message || String(error) },
       { status: 500 }
     );
   }
