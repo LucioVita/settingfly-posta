@@ -46,12 +46,12 @@ export async function POST(req: NextRequest) {
     }
 
     // Marcar todas las IgAccount del usuario como revocadas
-    await prisma.igAccount.updateMany({
+    const updateResult = await prisma.igAccount.updateMany({
       where: { userId: user.id },
       data: { revokedAt: new Date(), lastErrorAt: new Date(), lastErrorKind: "auth" },
     });
 
-    console.log(`[Meta Deauthorize] Marcadas ${user.igAccounts.length} cuentas como revocadas para el usuario ${user.id}.`);
+    console.log(`[Meta Deauthorize] Marcadas ${updateResult.count} cuentas como revocadas para el usuario ${user.id}.`);
 
     return NextResponse.json({ status: "ok" });
   } catch (error) {
