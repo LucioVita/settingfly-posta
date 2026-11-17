@@ -73,6 +73,12 @@ model IgAccount {
   accessToken   String
   pageId        String
   expiresAt     DateTime
+  /// Fecha en que Meta notificó revocación de permisos (deauthorize).
+  revokedAt     DateTime?
+  /// Último error registrado al enviar mensajes o hacer llamadas a Graph API para esta cuenta.
+  lastErrorAt   DateTime?
+  /// Clasificación del último error (auth, policy, rate_limit, etc.).
+  lastErrorKind String?        @db.VarChar(32)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   conversations Conversation[]
@@ -89,6 +95,13 @@ model Conversation {
   instagramUsername String
   status            String    @default("new")
   history           String    @db.LongText
+  /// Último mensaje entrante del prospecto (base de la ventana de mensajería de 24h).
+  lastUserMessageAt DateTime?
+  /// Último mensaje que enviamos nosotros (IA o humano), para auditoría y rate limiting.
+  lastOutboundAt    DateTime?
+  /// `message_id` del último mensaje enviado por la API: permite distinguir el echo de
+  /// nuestros propios envíos del de un humano escribiendo desde el celular.
+  lastOutboundMid   String?   @db.VarChar(191)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
   igAccount         IgAccount @relation(fields: [igAccountId], references: [id], onDelete: Cascade)
@@ -96,6 +109,17 @@ model Conversation {
 
   @@index([igAccountId], map: "Conversation_igAccountId_fkey")
   @@index([userId], map: "Conversation_userId_fkey")
+}
+
+/// Registro de eventos de webhook ya procesados. Meta reintenta entregas; esto evita
+/// respuestas y DMs duplicados. `id` es una clave compuesta lógica: "ig:message:<mid>"
+/// o "ig:comment:<comment_id>".
+model WebhookEvent {
+  id        String   @id @db.VarChar(160)
+  source    String   @default("instagram") @db.VarChar(32)
+  createdAt DateTime @default(now())
+
+  @@index([createdAt], map: "WebhookEvent_createdAt_idx")
 }
 
 model ContactRequest {

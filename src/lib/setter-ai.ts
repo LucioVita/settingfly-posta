@@ -10,9 +10,39 @@ export interface ConversationHistoryItem {
 }
 
 /**
+ * Configuración del setter tal como la usa el motor de prompts.
+ *
+ * Es intencionalmente laxa: acepta tanto el registro de Prisma como el objeto que
+ * envía el simulador. El índice permite campos extra sin romper la asignación.
+ */
+export interface SetterConfigInput {
+  businessName?: string | null;
+  offerDescription?: string | null;
+  targetAudience?: string | null;
+  priceRange?: string | null;
+  setterName?: string | null;
+  tone?: string | null;
+  dialect?: string | null;
+  useEmojis?: string | null;
+  bookingUrl?: string | null;
+  ctaHook?: string | null;
+  qualificationQ1?: string | null;
+  qualificationQ2?: string | null;
+  qualificationQ3?: string | null;
+  faqPrice?: string | null;
+  faqInfo?: string | null;
+  faqTime?: string | null;
+  noClosedPrices?: boolean | null;
+  noRefundPromises?: boolean | null;
+  customRedLines?: string | null;
+  aiEnabled?: boolean | null;
+  [key: string]: unknown;
+}
+
+/**
  * Genera el System Prompt dinámico a partir de la configuración del usuario en MySQL
  */
-export function buildDynamicSetterPrompt(config: any): string {
+export function buildDynamicSetterPrompt(config: SetterConfigInput | null): string {
   const businessName = config?.businessName || "Settingfly";
   const offerDescription = config?.offerDescription || "Automatización y calificación de prospectos con IA para Instagram";
   const targetAudience = config?.targetAudience || "Dueños de negocios, agencias y creadores B2B";
@@ -92,7 +122,7 @@ ${noRefundPromises ? "- NUNCA prometas reembolsos o garantías irreales." : ""}
  * Llama a la API de DeepSeek para generar la respuesta del Setter
  */
 export async function generateSetterReply(
-  config: any,
+  config: SetterConfigInput | null,
   history: ConversationHistoryItem[],
   userMessage: string
 ): Promise<string> {

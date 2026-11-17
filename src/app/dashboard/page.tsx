@@ -80,7 +80,16 @@ export default function App() {
 
   // Instagram accounts state (Multi-tenant ZeroChats style)
   const [igAccounts, setIgAccounts] = useState<
-    Array<{ id: number; username: string; instagramId: string; pageId?: string; expiresAt?: string }>
+    Array<{
+      id: number;
+      username: string;
+      instagramId: string;
+      pageId?: string;
+      expiresAt?: string;
+      revokedAt?: string;
+      lastErrorAt?: string;
+      lastErrorKind?: string;
+    }>
   >([]);
   const [isAccountsModalOpen, setIsAccountsModalOpen] = useState(false);
   const [newIgUsername, setNewIgUsername] = useState("");
