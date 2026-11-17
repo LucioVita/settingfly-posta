@@ -730,27 +730,42 @@ export default function App() {
                 igAccounts.map((acc) => (
                   <div
                     key={acc.id}
-                    className="flex items-center justify-between p-3.5 rounded-2xl bg-[#20242e] border border-white/[0.08]"
+                    className="flex flex-col p-3.5 rounded-2xl bg-[#20242e] border border-white/[0.08]"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="size-9 rounded-xl bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 flex items-center justify-center text-white shadow-md">
-                        <InstagramIcon className="size-4" />
-                      </div>
-                      <div>
-                        <div className="text-sm font-semibold text-white flex items-center gap-1.5">
-                          <span>@{acc.username}</span>
-                          <span className="size-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#10b981]" />
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center gap-3">
+                        <div className="size-9 rounded-xl bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 flex items-center justify-center text-white shadow-md">
+                          <InstagramIcon className="size-4" />
                         </div>
-                        <div className="text-[10px] text-slate-400 font-mono">ID: {acc.instagramId}</div>
+                        <div>
+                          <div className="text-sm font-semibold text-white flex items-center gap-1.5">
+                            <span>@{acc.username}</span>
+                            <span className={`size-1.5 rounded-full ${acc.revokedAt || acc.lastErrorKind ? 'bg-rose-500 shadow-[0_0_6px_#f43f5e]' : 'bg-emerald-400 shadow-[0_0_6px_#10b981]'}`} />
+                          </div>
+                          <div className="text-[10px] text-slate-400 font-mono">ID: {acc.instagramId}</div>
+                        </div>
                       </div>
+                      <button
+                        onClick={() => handleDisconnectIgAccount(acc.id)}
+                        className="size-9 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 flex items-center justify-center transition-colors"
+                        title="Desconectar cuenta"
+                      >
+                        <Trash2 className="size-4" />
+                      </button>
                     </div>
-                    <button
-                      onClick={() => handleDisconnectIgAccount(acc.id)}
-                      className="size-9 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 flex items-center justify-center transition-colors"
-                      title="Desconectar cuenta"
-                    >
-                      <Trash2 className="size-4" />
-                    </button>
+
+                    {/* Alerta de Salud */}
+                    {(acc.revokedAt || acc.lastErrorKind) && (
+                      <div className="w-full mt-3 p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[10px] flex items-center justify-between">
+                         <div className="flex items-center gap-1.5">
+                            <AlertCircle className="size-3" />
+                            <span className="font-semibold">
+                              {acc.revokedAt ? "Permisos revocados" : `Error de conexión: ${acc.lastErrorKind}`}
+                            </span>
+                         </div>
+                         <a href="/api/auth/meta/connect" className="font-bold underline hover:text-white">Reconectar</a>
+                      </div>
+                    )}
                   </div>
                 ))
               ) : (
