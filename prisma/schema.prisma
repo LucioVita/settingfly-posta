@@ -70,7 +70,7 @@ model IgAccount {
   userId        Int
   instagramId   String         @unique
   username      String
-  accessToken   String
+  accessToken   String         @db.Text
   pageId        String?
   expiresAt     DateTime
   /// Fecha en que Meta notificó revocación de permisos (deauthorize).
