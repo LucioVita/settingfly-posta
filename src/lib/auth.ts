@@ -104,36 +104,66 @@ export async function getCurrentUser() {
     const session = await verifySessionToken(token);
     if (!session) return null;
 
-    const user = await prisma.user.findUnique({
-      where: { id: session.userId },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        createdAt: true,
-        updatedAt: true,
-        plan: true,
-        subscriptionStatus: true,
-        subscriptionEndsAt: true,
-        setterConfig: true,
-        igAccounts: {
-          select: {
-            id: true,
-            instagramId: true,
-            username: true,
-            pageId: true,
-            expiresAt: true,
-            revokedAt: true,
-            lastErrorAt: true,
-            lastErrorKind: true,
+    let user = null;
+    try {
+      user = await prisma.user.findUnique({
+        where: { id: session.userId },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          createdAt: true,
+          updatedAt: true,
+          plan: true,
+          subscriptionStatus: true,
+          subscriptionEndsAt: true,
+          setterConfig: true,
+          igAccounts: {
+            select: {
+              id: true,
+              instagramId: true,
+              username: true,
+              pageId: true,
+              expiresAt: true,
+              revokedAt: true,
+              lastErrorAt: true,
+              lastErrorKind: true,
+            },
           },
         },
-      },
-    });
+      });
+    } catch (queryError: unknown) {
+      console.warn("Fallo en query extendida de igAccounts, usando fallback compatible:", queryError);
+      // Fallback por si la base de datos no tiene aún las columnas nuevas de igAccounts
+      user = await prisma.user.findUnique({
+        where: { id: session.userId },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          createdAt: true,
+          updatedAt: true,
+          plan: true,
+          subscriptionStatus: true,
+          subscriptionEndsAt: true,
+          setterConfig: true,
+          igAccounts: {
+            select: {
+              id: true,
+              instagramId: true,
+              username: true,
+              pageId: true,
+              expiresAt: true,
+            },
+          },
+        },
+      });
+    }
 
     return user;
-  } catch (error: any) {
-    if (error?.digest === "HANGING_PROMISE_REJECTION" || error?.message?.includes("prerender")) {
+  } catch (error: unknown) {
+    const err = error as { digest?: string; message?: string };
+    if (err?.digest === "HANGING_PROMISE_REJECTION" || err?.message?.includes("prerender")) {
       return null;
     }
     console.error("Error al obtener usuario actual:", error);

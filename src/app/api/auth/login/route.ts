@@ -45,7 +45,7 @@ export async function POST(request: Request) {
 
     await setSessionCookie(token);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       message: "Inicio de sesión exitoso.",
       user: {
@@ -54,10 +54,22 @@ export async function POST(request: Request) {
         name: user.name,
       },
     });
-  } catch (error: any) {
+
+    // Garantizar que la cabecera Set-Cookie viaje en la respuesta HTTP
+    response.cookies.set("autosetter_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60,
+    });
+
+    return response;
+  } catch (error: unknown) {
+    const err = error as { message?: string };
     console.error("Error en /api/auth/login:", error);
     return NextResponse.json(
-      { error: "Error interno del servidor al iniciar sesión.", details: error?.message || String(error) },
+      { error: "Error interno del servidor al iniciar sesión.", details: err?.message || String(error) },
       { status: 500 }
     );
   }

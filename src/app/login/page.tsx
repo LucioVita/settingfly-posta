@@ -53,9 +53,8 @@ export default function LoginPage() {
       setSuccessMessage("¡Sesión iniciada! Redirigiendo a tu consola...");
 
       setTimeout(() => {
-        router.push("/dashboard");
-        router.refresh();
-      }, 800);
+        window.location.href = "/dashboard";
+      }, 400);
     } catch {
       setErrorMessage("Error de conexión al servidor. Inténtalo de nuevo.");
       setIsLoading(false);
