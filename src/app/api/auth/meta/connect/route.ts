@@ -27,9 +27,9 @@ export async function GET(request: Request) {
       "email",
       "pages_show_list",
       "pages_read_engagement",
-      "pages_manage_metadata",
       "instagram_basic",
       "instagram_manage_messages",
+      "instagram_manage_comments",
     ].join(",");
 
     // Generamos un state seguro con el userId para evitar ataques CSRF y asociar la cuenta
