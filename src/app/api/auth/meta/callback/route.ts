@@ -24,7 +24,7 @@ export async function GET(request: Request) {
   if (error || !code || !stateRaw) {
     console.error("Error en callback de Meta:", error, errorDescription);
     return NextResponse.redirect(
-      `${appUrl}/?meta_error=${encodeURIComponent(errorDescription || error || "Acceso cancelado")}`
+      `${appUrl}/dashboard?meta_error=${encodeURIComponent(errorDescription || error || "Acceso cancelado")}`
     );
   }
 
@@ -34,7 +34,7 @@ export async function GET(request: Request) {
     const userId = Number(stateData.userId);
 
     if (!userId) {
-      return NextResponse.redirect(`${appUrl}/?meta_error=Estado_invalido`);
+      return NextResponse.redirect(`${appUrl}/dashboard?meta_error=Estado_invalido`);
     }
 
     const appId = process.env.META_APP_ID;
@@ -42,7 +42,7 @@ export async function GET(request: Request) {
     const redirectUri = `${appUrl}/api/auth/meta/callback`;
 
     if (!appId || !appSecret) {
-      return NextResponse.redirect(`${appUrl}/?meta_error=Configuracion_Meta_incompleta`);
+      return NextResponse.redirect(`${appUrl}/dashboard?meta_error=Configuracion_Meta_incompleta`);
     }
 
     // 2. Canjear el 'code' por un User Access Token de corta duración
@@ -57,7 +57,7 @@ export async function GET(request: Request) {
 
     if (!tokenRes.ok || !tokenData.access_token) {
       console.error("Error al canjear code por token en Meta:", tokenData);
-      return NextResponse.redirect(`${appUrl}/?meta_error=Error_canje_token`);
+      return NextResponse.redirect(`${appUrl}/dashboard?meta_error=Error_canje_token`);
     }
 
     const shortUserToken = tokenData.access_token;
@@ -86,7 +86,7 @@ export async function GET(request: Request) {
 
     if (pagesWithIg.length === 0) {
       return NextResponse.redirect(
-        `${appUrl}/?meta_error=${encodeURIComponent(
+        `${appUrl}/dashboard?meta_error=${encodeURIComponent(
           "No encontramos ninguna cuenta de Instagram Profesional vinculada a tus páginas de Facebook. Asegúrate de que tu Instagram sea de Empresa o Creador y esté vinculado a tu Fanpage."
         )}`
       );
@@ -152,12 +152,12 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.redirect(
-      `${appUrl}/?meta_success=true&connected=${connectedCount}`
+      `${appUrl}/dashboard?meta_success=true&connected=${connectedCount}`
     );
   } catch (error) {
     console.error("Excepción en callback de Meta OAuth:", error);
     return NextResponse.redirect(
-      `${appUrl}/?meta_error=Error_procesando_vinculacion_con_Meta`
+      `${appUrl}/dashboard?meta_error=Error_procesando_vinculacion_con_Meta`
     );
   }
 }
