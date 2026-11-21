@@ -50,7 +50,6 @@ export function buildDynamicSetterPrompt(config: SetterConfigInput | null): stri
   const setterName = config?.setterName || "Asistente";
   const tone = config?.tone || "cercano";
   const dialect = config?.dialect || "rioplatense";
-  const useEmojis = config?.useEmojis || "moderado";
   const bookingUrl = config?.bookingUrl || "https://calendly.com/demo";
   const ctaHook = config?.ctaHook || "Llamada de diagnóstico de 15 minutos sin costo";
 
@@ -62,13 +61,8 @@ export function buildDynamicSetterPrompt(config: SetterConfigInput | null): stri
     dialectInstruction = "Usa español de España (tú tienes, puedes, dime, genial, qué tal).";
   }
 
-  // Emojis
-  let emojiInstruction = "Usa 1 o 2 emojis máximo por mensaje.";
-  if (useEmojis === "nunca") {
-    emojiInstruction = "NUNCA uses ningún emoji en tus respuestas.";
-  } else if (useEmojis === "positivo") {
-    emojiInstruction = "Usa emojis amigables y cálidos que transmitan entusiasmo y profesionalismo (🚀, 🔥, 📥, 🙌).";
-  }
+  // Sin emojis: política global del producto (independiente de la configuración histórica).
+  const emojiInstruction = "NUNCA uses ningún emoji en tus respuestas.";
 
   // Preguntas de cualificación
   const q1 = config?.qualificationQ1 || "¿Actualmente ya tenés un negocio en marcha o estás por comenzar?";
@@ -131,7 +125,7 @@ export async function generateSetterReply(
 
   if (!apiKey) {
     console.warn("[Setter AI] DEEPSEEK_API_KEY no configurada. Usando respuesta de contingencia.");
-    return `¡Hola! Gracias por escribirnos a ${config?.businessName || "Settingfly"}. Enseguida un miembro de nuestro equipo revisará tu mensaje para responderte en detalle 📥`;
+    return `¡Hola! Gracias por escribirnos a ${config?.businessName || "Settingfly"}. Enseguida un miembro de nuestro equipo revisará tu mensaje para responderte en detalle.`;
   }
 
   const systemPrompt = buildDynamicSetterPrompt(config);

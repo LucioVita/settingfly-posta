@@ -233,10 +233,10 @@ async function handleInstagramComment(
     // Variantes de respuesta pública para rotación anti-spam
     const businessName = config?.businessName || "Settingfly";
     const publicReplies = [
-      `¡Hola @${leadUsername}! Te envié todos los detalles de ${businessName} por mensaje privado 📥`,
-      `¡Listo @${leadUsername}! Revisa tus DMs, te dejé toda la información 📥`,
-      `¡Te escribí al privado @${leadUsername}! Cualquier consulta avisame 📤`,
-      `¡Hola @${leadUsername}! Acabo de enviarte un DM con toda la info 🚀`,
+      `¡Hola @${leadUsername}! Te envié todos los detalles de ${businessName} por mensaje privado.`,
+      `¡Listo @${leadUsername}! Revisa tus DMs, te dejé toda la información.`,
+      `¡Te escribí al privado @${leadUsername}! Cualquier consulta avisame.`,
+      `¡Hola @${leadUsername}! Acabo de enviarte un DM con toda la info.`,
     ];
     const replyText = publicReplies[Math.floor(Math.random() * publicReplies.length)];
 

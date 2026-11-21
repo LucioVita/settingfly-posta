@@ -41,7 +41,10 @@ import {
   Trash2,
   X,
   RefreshCw,
+  Eye,
+  MessageCircle,
 } from "lucide-react";
+import InstagramIntegrationBadge from "@/components/InstagramIntegrationBadge";
 
 // Iconos personalizados para Meta Instagram y WhatsApp (estilo ZeroChats)
 function InstagramIcon({ className = "size-4" }: { className?: string }) {
@@ -77,6 +80,18 @@ export default function App() {
   const [authName, setAuthName] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState("");
+
+  // Metrics and CRM data (previously hardcoded)
+  const [metrics, setMetrics] = useState({
+    conversations: 0,
+    messagesProcessed: 0,
+    qualifiedLeads: 0,
+    callsScheduled: 0,
+    pipeline: 0,
+  });
+  const [dashboardLeads, setDashboardLeads] = useState([]);
+  const [dashboardConversations, setDashboardConversations] = useState([]);
+  const [crmLeads, setCrmLeads] = useState([]);
 
   // Instagram accounts state (Multi-tenant ZeroChats style)
   const [igAccounts, setIgAccounts] = useState<
@@ -178,6 +193,40 @@ export default function App() {
         }
       } catch (e) {
         console.error("Error loading user session:", e);
+      }
+
+      // Cargar métricas desde API real
+      try {
+        const metricsRes = await fetch("/api/metrics");
+        if (metricsRes.ok) {
+          const metricsData = await metricsRes.json();
+          setMetrics(metricsData.metrics);
+          setDashboardLeads(metricsData.leads);
+        }
+      } catch (e) {
+        console.error("Error loading metrics:", e);
+      }
+
+      // Cargar conversaciones desde API real
+      try {
+        const conversationsRes = await fetch("/api/conversations");
+        if (conversationsRes.ok) {
+          const conversationsData = await conversationsRes.json();
+          setDashboardConversations(conversationsData.conversations);
+        }
+      } catch (e) {
+        console.error("Error loading conversations:", e);
+      }
+
+      // Cargar leads desde API real (para el panel CRM)
+      try {
+        const crmLeadsRes = await fetch("/api/crm/leads");
+        if (crmLeadsRes.ok) {
+          const crmLeadsData = await crmLeadsRes.json();
+          setCrmLeads(crmLeadsData.leads);
+        }
+      } catch (e) {
+        console.error("Error loading CRM leads:", e);
       }
     }
     loadInitialData();
@@ -388,7 +437,7 @@ export default function App() {
   // Get dynamic greeting based on dialect
   const getSimGreeting = () => {
     if (config.dialect === "rioplatense") {
-      return `¡Qué hacés crack! Qué bueno que nos escribís 🔥 Sí, de una te paso la data completa de ${config.businessName}.`;
+      return `¡Qué hacés crack! Qué bueno que nos escribís. Sí, de una te paso la data completa de ${config.businessName}.`;
     }
     if (config.dialect === "espana") {
       return `¡Muy buenas! Un placer saludarte. Enseguida te paso los detalles completos de ${config.businessName}.`;
@@ -408,7 +457,7 @@ export default function App() {
     {
       id: "2",
       role: "assistant",
-      content: "¡Qué hacés crack! Qué bueno que nos escribís 🔥 Sí, de una te paso la data completa de Settingfly.",
+      content: "¡Qué hacés crack! Qué bueno que nos escribís. Sí, de una te paso la data completa de Settingfly.",
     },
     {
       id: "3",
@@ -815,7 +864,7 @@ export default function App() {
                   onClick={() => setShowManualConnect(!showManualConnect)}
                   className="w-full py-1.5 text-[11px] text-slate-500 hover:text-slate-300 flex items-center justify-center gap-1 transition-colors"
                 >
-                  <span>{showManualConnect ? "Ocultar conexión manual" : "⚙️ ¿Prefieres ingresar Token e ID manualmente?"}</span>
+                  <span>{showManualConnect ? "Ocultar conexión manual" : "¿Prefieres ingresar Token e ID manualmente?"}</span>
                 </button>
 
                 {showManualConnect && (
@@ -893,12 +942,13 @@ export default function App() {
       <aside className="w-64 bg-[#171920]/95 backdrop-blur-2xl border-r border-white/[0.08] z-50 flex flex-col justify-between p-5 shrink-0 shadow-lg">
         <div className="flex flex-col gap-6">
           {/* Logo Settingfly (wordmark) */}
-          <div className="flex items-center justify-start px-1 py-1">
+          <div className="flex flex-col items-start gap-2.5 px-1 py-1">
             <img
               src="/logo-settingfly-wordmark.png"
               alt="Settingfly"
               className="w-full max-w-[210px] h-auto object-contain transition-transform hover:scale-105 drop-shadow-md"
             />
+            <InstagramIntegrationBadge variant="compact" />
           </div>
 
           {/* Quick Status Pill */}
@@ -2054,14 +2104,18 @@ export default function App() {
                       </div>
                       <h3 className="text-sm font-bold text-white font-heading">{r.title}</h3>
                       <div className="flex items-center gap-4 mt-3 text-xs text-slate-400 font-mono">
-                        <span>👁️ {r.views} vistas</span>
-                        <span>💬 {r.comments} triggers</span>
+                        <span className="inline-flex items-center gap-1.5">
+                          <Eye className="size-3.5" /> {r.views} vistas
+                        </span>
+                        <span className="inline-flex items-center gap-1.5">
+                          <MessageCircle className="size-3.5" /> {r.comments} triggers
+                        </span>
                       </div>
                     </div>
 
                     <div className="p-3 bg-[#14161b] rounded-2xl border border-white/[0.05] text-[11px] text-slate-300">
                       <span className="text-[#00f2fe] font-mono block mb-1">Respuesta pública rotativa:</span>
-                      "¡Te acabo de enviar todos los accesos por DM! Revisá tus mensajes 🚀"
+                      "¡Te acabo de enviar todos los accesos por DM! Revisá tus mensajes"
                     </div>
                   </div>
                 ))}
@@ -2088,7 +2142,7 @@ export default function App() {
                 <div className="bg-[#20242e] p-5 rounded-3xl border border-white/10 shadow-md">
                   <span className="text-[11px] font-mono text-slate-400 uppercase">DMs Procesados</span>
                   <div className="flex items-baseline gap-2 mt-3">
-                    <span className="text-3xl font-heading font-extrabold text-white">3,248</span>
+                    <span className="text-3xl font-heading font-extrabold text-white">{metrics.messagesProcessed.toLocaleString()}</span>
                     <span className="text-xs font-bold text-emerald-400">+28%</span>
                   </div>
                 </div>
@@ -2096,15 +2150,15 @@ export default function App() {
                 <div className="bg-[#20242e] p-5 rounded-3xl border border-white/10 shadow-md">
                   <span className="text-[11px] font-mono text-slate-400 uppercase">Leads Cualificados (BANT)</span>
                   <div className="flex items-baseline gap-2 mt-3">
-                    <span className="text-3xl font-heading font-extrabold text-[#00f2fe]">892</span>
-                    <span className="text-xs font-mono text-[#00f2fe] bg-[#00f2fe]/10 px-2 py-0.5 rounded-full">27.4%</span>
+                    <span className="text-3xl font-heading font-extrabold text-[#00f2fe]">{metrics.qualifiedLeads.toLocaleString()}</span>
+                    <span className="text-xs font-mono text-[#00f2fe] bg-[#00f2fe]/10 px-2 py-0.5 rounded-full">{Math.round((metrics.qualifiedLeads / 3248) * 100) || 0}%</span>
                   </div>
                 </div>
 
                 <div className="bg-[#20242e] p-5 rounded-3xl border border-white/10 shadow-md">
                   <span className="text-[11px] font-mono text-slate-400 uppercase">Llamadas Agendadas</span>
                   <div className="flex items-baseline gap-2 mt-3">
-                    <span className="text-3xl font-heading font-extrabold text-[#d4ff00]">142</span>
+                    <span className="text-3xl font-heading font-extrabold text-[#d4ff00]">{metrics.callsScheduled.toLocaleString()}</span>
                     <span className="text-xs font-mono text-[#d4ff00] bg-[#d4ff00]/15 px-2 py-0.5 rounded-full font-bold">15.9% conv</span>
                   </div>
                 </div>
@@ -2112,7 +2166,7 @@ export default function App() {
                 <div className="bg-[#20242e] p-5 rounded-3xl border border-white/10 shadow-md">
                   <span className="text-[11px] font-mono text-slate-400 uppercase">Pipeline Estimado</span>
                   <div className="flex items-baseline gap-2 mt-3">
-                    <span className="text-3xl font-heading font-extrabold text-[#ff7a00]">$71,000</span>
+                    <span className="text-3xl font-heading font-extrabold text-[#ff7a00]">${metrics.pipeline.toLocaleString()}</span>
                     <span className="text-xs text-slate-400 font-mono">USD</span>
                   </div>
                 </div>
@@ -2128,15 +2182,15 @@ export default function App() {
                   </div>
                   <div className="p-4 bg-[#14161b] rounded-2xl border border-white/[0.05] text-center">
                     <span className="text-[10px] text-slate-400 font-mono uppercase block">2. DMs Abiertos</span>
-                    <span className="text-xl font-bold text-[#00f2fe] font-heading mt-1 block">3,248</span>
+                    <span className="text-xl font-bold text-[#00f2fe] font-heading mt-1 block">{metrics.messagesProcessed.toLocaleString()}</span>
                   </div>
                   <div className="p-4 bg-[#14161b] rounded-2xl border border-white/[0.05] text-center">
                     <span className="text-[10px] text-slate-400 font-mono uppercase block">3. Cualificados</span>
-                    <span className="text-xl font-bold text-[#d4ff00] font-heading mt-1 block">892</span>
+                    <span className="text-xl font-bold text-[#d4ff00] font-heading mt-1 block">{metrics.qualifiedLeads.toLocaleString()}</span>
                   </div>
                   <div className="p-4 bg-[#14161b] rounded-2xl border border-white/[0.05] text-center">
                     <span className="text-[10px] text-slate-400 font-mono uppercase block">4. Agendados</span>
-                    <span className="text-xl font-bold text-emerald-400 font-heading mt-1 block">142</span>
+                    <span className="text-xl font-bold text-emerald-400 font-heading mt-1 block">{metrics.callsScheduled.toLocaleString()}</span>
                   </div>
                 </div>
               </div>
@@ -2160,75 +2214,56 @@ export default function App() {
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-2 flex flex-col gap-1.5">
-                  {[
-                    {
-                      user: "@nacho_growth",
-                      msg: "Dale, pásame el enlace de la llamada",
-                      time: "2m",
-                      status: "ready_for_call",
-                      ai: true,
-                    },
-                    {
-                      user: "@martin_agency",
-                      msg: "Facturo $4k/mes con 3 clientes",
-                      time: "14m",
-                      status: "qualifying",
-                      ai: true,
-                    },
-                    {
-                      user: "@laura_fitness",
-                      msg: "¿Puedo hablar con alguien del equipo?",
-                      time: "1h",
-                      status: "human_takeover",
-                      ai: false,
-                    },
-                    {
-                      user: "@fede_ecommerce",
-                      msg: "¡Ya agendé para el jueves a las 16hs!",
-                      time: "3h",
-                      status: "booked",
-                      ai: true,
-                    },
-                  ].map((conv, i) => (
-                    <div
-                      key={i}
-                      className={`p-3 rounded-2xl cursor-pointer transition-all border ${
-                        i === 0
-                          ? "bg-[#202530] border-[#d4ff00]/40 shadow-sm"
-                          : "bg-[#14161b]/60 hover:bg-[#14161b] border-white/[0.04]"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-bold text-white font-mono">{conv.user}</span>
-                        <span className="text-[10px] text-slate-400 font-mono">{conv.time}</span>
-                      </div>
-                      <p className="text-[11px] text-slate-300 truncate mb-2">{conv.msg}</p>
-                      <div className="flex items-center justify-between">
-                        <span
-                          className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded-full border ${
-                            conv.status === "ready_for_call"
-                              ? "bg-[#00f2fe]/15 text-[#00f2fe] border-[#00f2fe]/30"
+                  {dashboardConversations.length > 0 ? (
+                    dashboardConversations.map((conv: any, i: number) => (
+                      <div
+                        key={conv.id}
+                        className={`p-3 rounded-2xl cursor-pointer transition-all border ${
+                          i === 0
+                            ? "bg-[#202530] border-[#d4ff00]/40 shadow-sm"
+                            : "bg-[#14161b]/60 hover:bg-[#14161b] border-white/[0.04]"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-bold text-white font-mono">@{conv.instagramUsername}</span>
+                          <span className="text-[10px] text-slate-400 font-mono">
+                            {new Date(conv.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-300 truncate mb-2">
+                          {conv.history && JSON.parse(conv.history).slice(-1)[0]?.content || "Iniciando conversación..."}
+                        </p>
+                        <div className="flex items-center justify-between">
+                          <span
+                            className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded-full border ${
+                              conv.status === "ready_for_call"
+                                ? "bg-[#00f2fe]/15 text-[#00f2fe] border-[#00f2fe]/30"
+                                : conv.status === "booked"
+                                ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
+                                : conv.status === "human_takeover"
+                                ? "bg-[#ff7a00]/15 text-[#ff7a00] border-[#ff7a00]/30"
+                                : "bg-slate-700/30 text-slate-300 border-slate-600/30"
+                            }`}
+                          >
+                            {conv.status === "ready_for_call"
+                              ? "Cualificado"
                               : conv.status === "booked"
-                              ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
+                              ? "Agendado"
                               : conv.status === "human_takeover"
-                              ? "bg-[#ff7a00]/15 text-[#ff7a00] border-[#ff7a00]/30"
-                              : "bg-slate-700/30 text-slate-300 border-slate-600/30"
-                          }`}
-                        >
-                          {conv.status === "ready_for_call"
-                            ? "Cualificado"
-                            : conv.status === "booked"
-                            ? "Agendado"
-                            : conv.status === "human_takeover"
-                            ? "Humano"
-                            : "Cualificando"}
-                        </span>
-                        <span className="text-[10px] font-mono text-[#d4ff00] font-bold">
-                          {conv.ai ? "IA ON" : "IA OFF"}
-                        </span>
+                              ? "Humano"
+                              : "Cualificando"}
+                          </span>
+                          <span className="text-[10px] font-mono text-[#d4ff00] font-bold">
+                            IA ON
+                          </span>
+                        </div>
                       </div>
+                    ))
+                  ) : (
+                    <div className="p-8 text-center">
+                      <p className="text-xs text-slate-500">No hay conversaciones activas.</p>
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
 
@@ -2310,7 +2345,7 @@ export default function App() {
             <div className="max-w-[1200px] mx-auto bg-[#1a1d24] p-8 rounded-3xl border border-white/[0.08] flex flex-col gap-6 shadow-2xl">
               <div className="flex items-center gap-3 pb-4 border-b border-white/[0.08]">
                 <div className="w-10 h-10 rounded-2xl bg-[#00f2fe]/15 text-[#00f2fe] flex items-center justify-center border border-[#00f2fe]/30 font-bold">
-                  🧪
+                  <FlaskConical className="size-5" />
                 </div>
                 <div>
                   <h2 className="text-lg font-heading font-bold text-white">Simulador Sandbox de Pruebas</h2>

@@ -15,6 +15,7 @@ import {
   ChevronRight,
   Sparkles,
 } from "lucide-react";
+import InstagramIntegrationBadge from "@/components/InstagramIntegrationBadge";
 
 function ContactForm() {
   const [loading, setLoading] = useState(false);
@@ -392,10 +393,11 @@ export default function LandingPage() {
                 </a>
               </div>
 
-              <div className="flex items-center justify-center lg:justify-start gap-2 text-xs text-slate-500 font-mono">
-                <Shield className="size-3.5 text-[#d4ff00]" />
-                <span>
-                  Intercambio oficial de Meta Graph API · Sin riesgo de baneos
+              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 pt-1">
+                <InstagramIntegrationBadge />
+                <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-500 font-mono">
+                  <Shield className="size-3.5 text-[#d4ff00]" />
+                  Conexión mediante la API de Instagram
                 </span>
               </div>
             </div>
@@ -418,7 +420,7 @@ export default function LandingPage() {
                   <p className="text-xs text-[#00f2fe] font-bold mb-1">
                     lead_interesado_01 comentó:
                   </p>
-                  <p className="text-sm text-slate-200">“quiero info del programa 🙌”</p>
+                  <p className="text-sm text-slate-200">“quiero info del programa”</p>
                 </div>
 
                 {/* IA reply */}
@@ -427,14 +429,14 @@ export default function LandingPage() {
                     <Bot className="size-3" /> Setter IA respondió
                   </span>
                   <p className="text-sm text-slate-200">
-                    “¡Buenas! Te escribí por DM con todo 👀” <span className="text-slate-500">· público</span>
+                    “¡Buenas! Te escribí por DM con todo” <span className="text-slate-500">· público</span>
                   </p>
                 </div>
 
                 {/* DM */}
                 <div className="rounded-2xl rounded-tr-sm bg-[#20242e] border border-white/[0.06] p-4 flex flex-col gap-2">
                   <p className="text-sm text-slate-200">
-                    “Holaa! 👋 Vi que te interesa el programa. ¿Haces llamadas o trabajas con
+                    “Holaa! Vi que te interesa el programa. ¿Haces llamadas o trabajas con
                     agencias online?”
                   </p>
                 </div>
@@ -446,7 +448,7 @@ export default function LandingPage() {
                   </div>
                   <div className="flex flex-col">
                     <span className="text-sm font-bold text-white">
-                      ✅ Lead cualificado
+                      Lead cualificado
                     </span>
                     <span className="text-xs text-slate-400">
                       Link de agenda enviado · videollamada mañana 10:00
@@ -463,7 +465,7 @@ export default function LandingPage() {
           <div className="max-w-7xl mx-auto px-6 py-8 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             {[
               { icon: Zap, value: "24/7", label: "Sin límite de conversaciones" },
-              { icon: Shield, value: "API oficial", label: "Conexión segura con Meta" },
+              { icon: Shield, value: "API Instagram", label: "Conexión segura y cifrada" },
               { icon: Bot, value: "IA", label: "Lenguaje natural, sin prompts" },
               { icon: Calendar, value: "0 tiempo", label: "Configuras en menos de un día" },
             ].map((item) => (
