@@ -2504,71 +2504,102 @@ export default function App() {
               <div className="flex-1 bg-[#1a1d24] rounded-3xl border border-white/[0.08] flex flex-col overflow-hidden">
                 <div className="p-4 border-b border-white/[0.08] flex items-center justify-between bg-[#171920]">
                   <div className="flex items-center gap-3">
-                    <div className="size-9 rounded-2xl bg-[#20242e] border border-white/10 flex items-center justify-center font-bold text-xs text-[#00f2fe]">
-                      @N
+                    <div className="size-9 rounded-2xl bg-[#20242e] border border-white/10 flex items-center justify-center font-bold text-xs text-[#00f2fe] font-mono">
+                      {selectedConversation
+                        ? selectedConversation.instagramUsername.slice(0, 2).toUpperCase()
+                        : "--"}
                     </div>
                     <div>
-                      <h3 className="text-xs font-bold text-white font-mono">@nacho_growth</h3>
-                      <span className="text-[10px] text-emerald-400 font-mono">Cualificado • Listo para llamada</span>
+                      <h3 className="text-xs font-bold text-white font-mono">
+                        {selectedConversation ? `@${selectedConversation.instagramUsername}` : "Sin conversación"}
+                      </h3>
+                      <span
+                        className={`text-[10px] font-mono ${
+                          selectedConversation?.status === "human_takeover"
+                            ? "text-[#ff7a00]"
+                            : "text-emerald-400"
+                        }`}
+                      >
+                        {selectedConversation
+                          ? conversationStatusLabel(selectedConversation.status)
+                          : "Elegí una conversación de la lista"}
+                      </span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => triggerToast("Control tomado. IA pausada para este usuario.")}
-                      className="px-3 py-1.5 rounded-full bg-[#ff7a00]/15 text-[#ff7a00] border border-[#ff7a00]/30 text-xs font-semibold hover:bg-[#ff7a00]/25 transition-all"
+                      type="button"
+                      onClick={handleToggleHumanTakeover}
+                      disabled={!selectedConversation}
+                      className={`px-3 py-1.5 rounded-full border text-xs font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
+                        selectedConversation?.status === "human_takeover"
+                          ? "bg-[#d4ff00]/15 text-[#d4ff00] border-[#d4ff00]/30 hover:bg-[#d4ff00]/25"
+                          : "bg-[#ff7a00]/15 text-[#ff7a00] border-[#ff7a00]/30 hover:bg-[#ff7a00]/25"
+                      }`}
                     >
-                      Pausar IA / Tomar Control
+                      {selectedConversation?.status === "human_takeover"
+                        ? "Reactivar IA"
+                        : "Pausar IA / Tomar Control"}
                     </button>
                   </div>
                 </div>
 
                 <div className="flex-1 p-5 overflow-y-auto flex flex-col gap-3 bg-[#12141a]">
-                  <div className="flex justify-start">
-                    <div className="bg-[#20242e] p-3 rounded-2xl rounded-tl-xs max-w-md text-xs text-slate-200 border border-white/5">
-                      ¡Hola! Vi el reel de automatización, ¿me pasan info y precios?
+                  {selectedConversation ? (
+                    parseConversationHistory(selectedConversation.history).length > 0 ? (
+                      parseConversationHistory(selectedConversation.history).map((msg, i) =>
+                        msg.role === "user" ? (
+                          <div key={`${selectedConversation.id}-${i}`} className="flex justify-start">
+                            <div className="bg-[#20242e] p-3 rounded-2xl rounded-tl-xs max-w-md text-xs text-slate-200 border border-white/5 whitespace-pre-wrap">
+                              {msg.content}
+                            </div>
+                          </div>
+                        ) : (
+                          <div key={`${selectedConversation.id}-${i}`} className="flex justify-end">
+                            <div className="bg-gradient-to-r from-[#00f2fe]/20 to-[#00f2fe]/10 border border-[#00f2fe]/40 p-3 rounded-2xl rounded-tr-xs max-w-md text-xs text-white whitespace-pre-wrap">
+                              {msg.content}
+                            </div>
+                          </div>
+                        )
+                      )
+                    ) : (
+                      <div className="flex-1 flex items-center justify-center">
+                        <p className="text-xs text-slate-500">Esta conversación todavía no tiene mensajes.</p>
+                      </div>
+                    )
+                  ) : (
+                    <div className="flex-1 flex items-center justify-center">
+                      <p className="text-xs text-slate-500">
+                        Cuando un prospecto te escriba por Instagram, la conversación aparece acá.
+                      </p>
                     </div>
-                  </div>
-
-                  <div className="flex justify-end">
-                    <div className="bg-gradient-to-r from-[#00f2fe]/20 to-[#00f2fe]/10 border border-[#00f2fe]/40 p-3 rounded-2xl rounded-tr-xs max-w-md text-xs text-white">
-                      {getSimGreeting()}
-                    </div>
-                  </div>
-
-                  <div className="flex justify-start">
-                    <div className="bg-[#20242e] p-3 rounded-2xl rounded-tl-xs max-w-md text-xs text-slate-200 border border-white/5">
-                      Dale, pásame el enlace de la llamada
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end">
-                    <div className="bg-[#181c25] border border-[#d4ff00]/40 p-3.5 rounded-2xl max-w-md flex flex-col gap-2">
-                      <span className="text-xs font-bold text-white">{config.ctaHook}</span>
-                      <a
-                        href={config.bookingUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="py-2 bg-[#d4ff00] text-[#14161b] rounded-xl text-center text-xs font-extrabold uppercase tracking-wider font-heading"
-                      >
-                        Abrir Calendly
-                      </a>
-                    </div>
-                  </div>
+                  )}
                 </div>
 
-                <div className="p-3 bg-[#171920] border-t border-white/[0.08] flex items-center gap-2">
+                <form
+                  onSubmit={handleSendInboxMessage}
+                  className="p-3 bg-[#171920] border-t border-white/[0.08] flex items-center gap-2"
+                >
                   <input
                     type="text"
-                    placeholder="Escribe una respuesta como humano..."
-                    className="flex-1 bg-[#14161b] border border-white/10 rounded-2xl px-4 py-2.5 text-xs text-white outline-none focus:border-[#d4ff00]"
+                    value={inboxInput}
+                    onChange={(e) => setInboxInput(e.target.value)}
+                    disabled={!selectedConversation || inboxSending}
+                    placeholder={
+                      selectedConversation
+                        ? "Escribe una respuesta como humano..."
+                        : "Seleccioná una conversación para responder"
+                    }
+                    className="flex-1 bg-[#14161b] border border-white/10 rounded-2xl px-4 py-2.5 text-xs text-white outline-none focus:border-[#d4ff00] disabled:opacity-50"
                   />
                   <button
-                    onClick={() => triggerToast("Mensaje enviado por Instagram Graph API.")}
-                    className="p-2.5 rounded-2xl bg-[#d4ff00] text-[#14161b] hover:bg-[#c6f000] font-bold"
+                    type="submit"
+                    disabled={!selectedConversation || !inboxInput.trim() || inboxSending}
+                    className="p-2.5 rounded-2xl bg-[#d4ff00] text-[#14161b] hover:bg-[#c6f000] font-bold disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     <Send className="size-4" />
                   </button>
-                </div>
+                </form>
               </div>
             </div>
           )}
@@ -2615,9 +2646,22 @@ export default function App() {
 
                 <div className="flex flex-col gap-3">
                   <label className="text-xs font-semibold text-slate-300">Respuesta Generada por el Setter</label>
-                  <div className="w-full bg-[#14161b] p-4 rounded-2xl border border-[#00f2fe]/30 text-xs text-[#00f2fe] font-mono leading-relaxed min-h-[120px]">
-                    {getSimGreeting()}
+                  <div className="w-full bg-[#14161b] p-4 rounded-2xl border border-[#00f2fe]/30 text-xs text-[#00f2fe] font-mono leading-relaxed min-h-[120px] whitespace-pre-wrap">
+                    {sandboxLoading
+                      ? "Generando respuesta con la configuración activa..."
+                      : sandboxReply || "Todavía no generaste una respuesta. Escribí un mensaje y tocá \"Simular respuesta\"."}
                   </div>
+                  <button
+                    type="button"
+                    onClick={handleRunSandbox}
+                    disabled={!simProspectMsg.trim() || sandboxLoading}
+                    className="self-start px-5 py-2.5 rounded-full bg-[#00f2fe] hover:bg-[#00d8e6] text-[#14161b] text-xs font-extrabold uppercase tracking-wide transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {sandboxLoading ? "Simulando..." : "Simular respuesta"}
+                  </button>
+                  <p className="text-[10px] text-slate-500">
+                    La simulación usa la configuración activa y no envía nada a Instagram.
+                  </p>
                 </div>
               </div>
             </div>
