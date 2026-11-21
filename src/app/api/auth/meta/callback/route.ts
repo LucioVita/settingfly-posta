@@ -57,7 +57,8 @@ export async function GET(request: Request) {
 
     if (!tokenRes.ok || !tokenData.access_token) {
       console.error("Error al canjear code por token en Meta:", tokenData);
-      return NextResponse.redirect(`${appUrl}/dashboard?meta_error=Error_canje_token`);
+      const msg = tokenData?.error?.message || tokenData?.error || "Error al canjear código por token en Meta";
+      return NextResponse.redirect(`${appUrl}/dashboard?meta_error=${encodeURIComponent(msg)}`);
     }
 
     const shortUserToken = tokenData.access_token;
@@ -154,10 +155,12 @@ export async function GET(request: Request) {
     return NextResponse.redirect(
       `${appUrl}/dashboard?meta_success=true&connected=${connectedCount}`
     );
-  } catch (error) {
+  } catch (error: unknown) {
+    const err = error as { message?: string };
     console.error("Excepción en callback de Meta OAuth:", error);
+    const msg = err?.message || String(error) || "Error procesando vinculación con Meta";
     return NextResponse.redirect(
-      `${appUrl}/dashboard?meta_error=Error_procesando_vinculacion_con_Meta`
+      `${appUrl}/dashboard?meta_error=${encodeURIComponent(msg)}`
     );
   }
 }

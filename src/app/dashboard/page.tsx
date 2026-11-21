@@ -193,7 +193,10 @@ export default function App() {
         triggerToast(`¡Conexión exitosa con Meta! (${connectedCount || 1} cuenta/s vinculadas)`);
         window.history.replaceState({}, document.title, window.location.pathname);
       } else if (metaError) {
-        triggerToast(`Error al conectar con Meta: ${decodeURIComponent(metaError)}`, "error");
+        const decoded = decodeURIComponent(metaError);
+        setConnectError(decoded);
+        setIsAccountsModalOpen(true);
+        triggerToast(`Error al conectar con Meta: ${decoded}`, "error");
         window.history.replaceState({}, document.title, window.location.pathname);
       }
     }
@@ -204,7 +207,7 @@ export default function App() {
     setToastType(type);
     setTimeout(() => {
       setToastMessage(null);
-    }, 3500);
+    }, type === "error" ? 12000 : 3500);
   };
 
   // Save config to MySQL
