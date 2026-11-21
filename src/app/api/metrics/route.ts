@@ -1,7 +1,23 @@
 // web/src/app/api/metrics/route.ts
+// Métricas reales del dashboard, calculadas a partir de MySQL.
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
+
+type HistoryItem = { role?: string; content?: string; timestamp?: string };
+
+function parseHistory(raw: unknown): HistoryItem[] {
+  if (Array.isArray(raw)) return raw as HistoryItem[];
+  if (typeof raw === "string" && raw.trim()) {
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? (parsed as HistoryItem[]) : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
 
 export async function GET() {
   try {
@@ -10,41 +26,46 @@ export async function GET() {
       return NextResponse.json({ error: "No autenticado" }, { status: 401 });
     }
 
-    const [conversationsCount, messagesProcessed] = await Promise.all([
-      prisma.conversation.count({ where: { userId: user.id } }),
-      prisma.conversation.aggregate({
+    const [conversations, accounts, leads, commentEvents] = await Promise.all([
+      prisma.conversation.findMany({
         where: { userId: user.id },
-        _sum: {
-          id: true,
-        },
+        select: { id: true, history: true },
       }),
+      prisma.igAccount.findMany({
+        where: { userId: user.id },
+        select: { id: true, revokedAt: true, lastErrorKind: true },
+      }),
+      prisma.contactRequest.findMany({
+        where: { userId: user.id },
+        select: { id: true, status: true, createdAt: true },
+        orderBy: { createdAt: "desc" },
+      }),
+      // WebhookEvent no guarda userId: cuenta global de eventos procesados por la app.
+      prisma.webhookEvent.count({ where: { id: { startsWith: "ig:comment:" } } }),
     ]);
 
-    // Obtener leads desde ContactRequest
-    const leads = await prisma.contactRequest.findMany({
-      where: { userId: user.id },
-      select: {
-        id: true,
-        status: true,
-        createdAt: true,
-      },
-      orderBy: { createdAt: "desc" },
-    });
+    // Mensajes procesados = cantidad de entradas reales en el historial de cada conversación.
+    const messagesProcessed = conversations.reduce(
+      (total, conv) => total + parseHistory(conv.history).length,
+      0
+    );
 
-    const leadsCount = leads.length;
-    const qualifiedLeads = leads.filter((l) => l.status === "agendado" || l.status === "ganado").length;
-
-    // Calcular métricas más realistas basadas en los datos
-    const totalMessagesProcessed = messagesProcessed._sum.id || 0;
-    const callsScheduled = leads.filter((l) => l.status === "agendado").length;
+    const qualifiedLeads = leads.filter(
+      (lead) => lead.status === "agendado" || lead.status === "ganado"
+    ).length;
+    const callsScheduled = leads.filter((lead) => lead.status === "agendado").length;
+    const pipeline = qualifiedLeads * 1500;
 
     return NextResponse.json({
       metrics: {
-        conversations: conversationsCount,
-        messagesProcessed: totalMessagesProcessed,
+        conversations: conversations.length,
+        messagesProcessed,
+        commentsProcessed: commentEvents,
         qualifiedLeads,
         callsScheduled,
-        pipeline: Math.max(0, qualifiedLeads * 1500),
+        pipeline,
+        accountsConnected: accounts.length,
+        accountsWithIssues: accounts.filter((a) => a.revokedAt || a.lastErrorKind).length,
       },
       leads,
     });

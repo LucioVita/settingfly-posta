@@ -85,13 +85,48 @@ export default function App() {
   const [metrics, setMetrics] = useState({
     conversations: 0,
     messagesProcessed: 0,
+    commentsProcessed: 0,
     qualifiedLeads: 0,
     callsScheduled: 0,
     pipeline: 0,
+    accountsConnected: 0,
+    accountsWithIssues: 0,
   });
-  const [dashboardLeads, setDashboardLeads] = useState([]);
-  const [dashboardConversations, setDashboardConversations] = useState([]);
-  const [crmLeads, setCrmLeads] = useState([]);
+  const [dashboardLeads, setDashboardLeads] = useState<Array<{ id: number; status: string; createdAt: string }>>([]);
+  const [dashboardConversations, setDashboardConversations] = useState<
+    Array<{
+      id: number;
+      instagramUsername: string;
+      instagramUserId: string;
+      status: string;
+      history: string;
+      updatedAt: string;
+      lastUserMessageAt?: string | null;
+      lastOutboundAt?: string | null;
+    }>
+  >([]);
+  const [crmLeads, setCrmLeads] = useState<Array<Record<string, unknown>>>([]);
+  const [campaigns, setCampaigns] = useState({
+    activeAccounts: 0,
+    commentsToday: 0,
+    messagesToday: 0,
+    totalComments: 0,
+    triggerRate: 0,
+    antibanIssues: 0,
+  });
+  const [campaignReels, setCampaignReels] = useState<
+    Array<{ id: string; title: string; views: string; comments: number; keyword: string; status: string }>
+  >([]);
+
+  // Inbox state
+  const [selectedConversationId, setSelectedConversationId] = useState<number | null>(null);
+  const [inboxSearch, setInboxSearch] = useState("");
+  const [inboxInput, setInboxInput] = useState("");
+  const [inboxSending, setInboxSending] = useState(false);
+
+  // Sandbox state
+  const [sandboxReply, setSandboxReply] = useState("");
+  const [sandboxLoading, setSandboxLoading] = useState(false);
 
   // Instagram accounts state (Multi-tenant ZeroChats style)
   const [igAccounts, setIgAccounts] = useState<
@@ -212,10 +247,28 @@ export default function App() {
         const conversationsRes = await fetch("/api/conversations");
         if (conversationsRes.ok) {
           const conversationsData = await conversationsRes.json();
-          setDashboardConversations(conversationsData.conversations);
+          const list = Array.isArray(conversationsData.conversations)
+            ? conversationsData.conversations
+            : [];
+          setDashboardConversations(list);
+          if (list.length > 0) {
+            setSelectedConversationId((prev) => prev ?? list[0].id);
+          }
         }
       } catch (e) {
         console.error("Error loading conversations:", e);
+      }
+
+      // Cargar estadísticas de campañas / triggers
+      try {
+        const campaignsRes = await fetch("/api/campaigns");
+        if (campaignsRes.ok) {
+          const campaignsData = await campaignsRes.json();
+          if (campaignsData.campaigns) setCampaigns(campaignsData.campaigns);
+          if (Array.isArray(campaignsData.reels)) setCampaignReels(campaignsData.reels);
+        }
+      } catch (e) {
+        console.error("Error loading campaigns:", e);
       }
 
       // Cargar leads desde API real (para el panel CRM)
@@ -431,6 +484,146 @@ export default function App() {
       }
     } catch {
       triggerToast("Error de conexión.", "error");
+    }
+  };
+
+  /* ----------------------------- Inbox real ----------------------------- */
+
+  const parseConversationHistory = (
+    raw: unknown
+  ): Array<{ role: "user" | "assistant"; content: string; timestamp?: string }> => {
+    if (Array.isArray(raw)) return raw;
+    if (typeof raw === "string" && raw.trim()) {
+      try {
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  };
+
+  const selectedConversation =
+    dashboardConversations.find((conv) => conv.id === selectedConversationId) ??
+    dashboardConversations[0] ??
+    null;
+
+  const conversationStatusLabel = (status: string) => {
+    switch (status) {
+      case "ready_for_call":
+        return "Cualificado";
+      case "booked":
+        return "Agendado";
+      case "human_takeover":
+        return "Control humano";
+      case "qualifying":
+        return "Cualificando";
+      case "new":
+        return "Nueva";
+      default:
+        return status;
+    }
+  };
+
+  const filteredConversations = dashboardConversations.filter((conv) =>
+    conv.instagramUsername.toLowerCase().includes(inboxSearch.trim().toLowerCase())
+  );
+
+  const refetchConversations = async () => {
+    try {
+      const res = await fetch("/api/conversations");
+      if (res.ok) {
+        const data = await res.json();
+        setDashboardConversations(Array.isArray(data.conversations) ? data.conversations : []);
+      }
+    } catch (err) {
+      console.error("Error al refrescar conversaciones:", err);
+    }
+  };
+
+  const handleToggleHumanTakeover = async () => {
+    if (!selectedConversation) return;
+    const nextStatus =
+      selectedConversation.status === "human_takeover" ? "qualifying" : "human_takeover";
+    try {
+      const res = await fetch("/api/conversations", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: selectedConversation.id, status: nextStatus }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        triggerToast(data?.error || "No se pudo actualizar la conversación.", "error");
+        return;
+      }
+      setDashboardConversations((prev) =>
+        prev.map((conv) =>
+          conv.id === selectedConversation.id ? { ...conv, status: nextStatus } : conv
+        )
+      );
+      triggerToast(
+        nextStatus === "human_takeover"
+          ? "Control humano activado. La IA queda pausada para esta conversación."
+          : "IA reactivada para esta conversación."
+      );
+    } catch {
+      triggerToast("Error de conexión al actualizar la conversación.", "error");
+    }
+  };
+
+  const handleSendInboxMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedConversation || !inboxInput.trim() || inboxSending) return;
+
+    setInboxSending(true);
+    try {
+      const res = await fetch("/api/conversations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: selectedConversation.id, message: inboxInput.trim() }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        triggerToast(data?.error || "No se pudo enviar el mensaje.", "error");
+        return;
+      }
+      setInboxInput("");
+      triggerToast("Mensaje enviado por Instagram.");
+      await refetchConversations();
+    } catch {
+      triggerToast("Error de conexión al enviar el mensaje.", "error");
+    } finally {
+      setInboxSending(false);
+    }
+  };
+
+  /* ---------------------------- Sandbox real ---------------------------- */
+
+  const handleRunSandbox = async () => {
+    if (!simProspectMsg.trim() || sandboxLoading) return;
+    setSandboxLoading(true);
+    setSandboxReply("");
+    try {
+      const res = await fetch("/api/setter/simulate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          config,
+          messages: [{ role: "user", content: simProspectMsg.trim() }],
+          userMessage: simProspectMsg.trim(),
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (res.ok && data?.reply) {
+        setSandboxReply(data.reply);
+      } else {
+        triggerToast(data?.error || "No se pudo generar la respuesta.", "error");
+      }
+    } catch {
+      triggerToast("Error de conexión al simular.", "error");
+    } finally {
+      setSandboxLoading(false);
     }
   };
 
@@ -951,17 +1144,37 @@ export default function App() {
             <InstagramIntegrationBadge variant="compact" />
           </div>
 
-          {/* Quick Status Pill */}
-          <div className="p-3 bg-[#1e222b] rounded-2xl border border-[#00f2fe]/30 flex items-center justify-between shadow-sm">
+          {/* Quick Status Pill (estado real) */}
+          <div
+            className={`p-3 bg-[#1e222b] rounded-2xl border flex items-center justify-between shadow-sm ${
+              igAccounts.length > 0 && config.aiEnabled
+                ? "border-[#00f2fe]/30"
+                : "border-amber-500/30"
+            }`}
+          >
             <div className="flex items-center gap-2">
               <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00f2fe] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#00f2fe]"></span>
+                {igAccounts.length > 0 && config.aiEnabled && (
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00f2fe] opacity-75"></span>
+                )}
+                <span
+                  className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
+                    igAccounts.length > 0 && config.aiEnabled ? "bg-[#00f2fe]" : "bg-amber-400"
+                  }`}
+                ></span>
               </span>
-              <span className="text-xs font-semibold text-slate-200">{config.setterName} Activo</span>
+              <span className="text-xs font-semibold text-slate-200">
+                {config.setterName} {igAccounts.length === 0 ? "sin vincular" : config.aiEnabled ? "activo" : "pausado"}
+              </span>
             </div>
-            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-[#00f2fe]/15 text-[#00f2fe] border border-[#00f2fe]/40">
-              EN LÍNEA
+            <span
+              className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border ${
+                igAccounts.length > 0 && config.aiEnabled
+                  ? "bg-[#00f2fe]/15 text-[#00f2fe] border-[#00f2fe]/40"
+                  : "bg-amber-500/15 text-amber-300 border-amber-500/40"
+              }`}
+            >
+              {igAccounts.length === 0 ? "SIN CUENTA" : config.aiEnabled ? "EN LÍNEA" : "PAUSADO"}
             </span>
           </div>
 
@@ -2022,14 +2235,14 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Stats Grid */}
+              {/* Stats Grid (datos reales) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                 <div className="rounded-3xl bg-[#20242e] p-5 border border-white/10 flex flex-col justify-between shadow-md">
-                  <span className="text-[11px] font-mono font-bold text-slate-400 uppercase">Campañas Activas</span>
+                  <span className="text-[11px] font-mono font-bold text-slate-400 uppercase">Cuentas Activas</span>
                   <div className="flex items-baseline gap-2 mt-4">
-                    <span className="text-3xl font-heading font-extrabold text-white">4</span>
+                    <span className="text-3xl font-heading font-extrabold text-white">{campaigns.activeAccounts}</span>
                     <span className="text-[11px] font-mono font-bold text-[#00f2fe] bg-[#00f2fe]/10 px-2 py-0.5 rounded-full border border-[#00f2fe]/30">
-                      100% On
+                      {igAccounts.length} vinculadas
                     </span>
                   </div>
                 </div>
@@ -2037,17 +2250,17 @@ export default function App() {
                 <div className="rounded-3xl bg-[#20242e] p-5 border border-white/10 flex flex-col justify-between shadow-md">
                   <span className="text-[11px] font-mono font-bold text-slate-400 uppercase">Comentarios Hoy</span>
                   <div className="flex items-baseline gap-2 mt-4">
-                    <span className="text-3xl font-heading font-extrabold text-[#d4ff00]">1,420</span>
-                    <span className="text-[11px] font-mono font-bold text-emerald-400">+34% vs ayer</span>
+                    <span className="text-3xl font-heading font-extrabold text-[#d4ff00]">{campaigns.commentsToday.toLocaleString()}</span>
+                    <span className="text-[11px] font-mono font-bold text-slate-400">{campaigns.totalComments.toLocaleString()} total</span>
                   </div>
                 </div>
 
                 <div className="rounded-3xl bg-[#20242e] p-5 border border-white/10 flex flex-col justify-between shadow-md">
                   <span className="text-[11px] font-mono font-bold text-slate-400 uppercase">Tasa de Disparo</span>
                   <div className="flex items-baseline gap-2 mt-4">
-                    <span className="text-3xl font-heading font-extrabold text-[#ff7a00]">99.1%</span>
+                    <span className="text-3xl font-heading font-extrabold text-[#ff7a00]">{campaigns.triggerRate}%</span>
                     <span className="text-[11px] font-mono text-[#ff7a00] bg-[#ff7a00]/15 px-2 py-0.5 rounded-full">
-                      Óptimo
+                      {campaigns.commentsToday === 0 ? "Sin datos" : "Hoy"}
                     </span>
                   </div>
                 </div>
@@ -2055,71 +2268,71 @@ export default function App() {
                 <div className="rounded-3xl bg-[#20242e] p-5 border border-white/10 flex flex-col justify-between shadow-md">
                   <span className="text-[11px] font-mono font-bold text-slate-400 uppercase">Seguridad Antiban</span>
                   <div className="flex items-baseline gap-2 mt-4">
-                    <span className="text-3xl font-heading font-extrabold text-[#00f2fe]">0</span>
-                    <span className="text-xs text-slate-300">Bloqueos</span>
+                    <span className="text-3xl font-heading font-extrabold text-[#00f2fe]">{campaigns.antibanIssues}</span>
+                    <span className="text-xs text-slate-300">{campaigns.antibanIssues === 0 ? "Sin alertas" : "Cuentas con alertas"}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Sample Reel Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                {[
-                  {
-                    id: "reel-1",
-                    title: "Reel: 3 Errores al Delegar Ventas",
-                    views: "42.5K",
-                    comments: 312,
-                    keyword: "CLASE",
-                    status: "Activa",
-                  },
-                  {
-                    id: "reel-2",
-                    title: "Reel: Cómo Agendamos 20 Llamadas con IA",
-                    views: "89.1K",
-                    comments: 840,
-                    keyword: "SETTER",
-                    status: "Activa",
-                  },
-                  {
-                    id: "reel-3",
-                    title: "Reel: Auditoría en Vivo de un Embudo B2B",
-                    views: "18.2K",
-                    comments: 168,
-                    keyword: "AUDITORIA",
-                    status: "Activa",
-                  },
-                ].map((r) => (
-                  <div
-                    key={r.id}
-                    className="rounded-3xl bg-[#20242e] p-5 border border-white/10 hover:border-[#d4ff00]/40 transition-all shadow-md flex flex-col justify-between gap-4"
-                  >
-                    <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-[#d4ff00]/15 text-[#d4ff00] border border-[#d4ff00]/30">
-                          KEYWORD: {r.keyword}
-                        </span>
-                        <span className="text-[10px] font-mono text-emerald-400 font-bold bg-emerald-400/10 px-2 py-0.5 rounded-full">
-                          {r.status}
-                        </span>
-                      </div>
-                      <h3 className="text-sm font-bold text-white font-heading">{r.title}</h3>
-                      <div className="flex items-center gap-4 mt-3 text-xs text-slate-400 font-mono">
-                        <span className="inline-flex items-center gap-1.5">
-                          <Eye className="size-3.5" /> {r.views} vistas
-                        </span>
-                        <span className="inline-flex items-center gap-1.5">
-                          <MessageCircle className="size-3.5" /> {r.comments} triggers
-                        </span>
+              {/* Campañas de Reels (sin datos ficticios) */}
+              {campaignReels.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  {campaignReels.map((r) => (
+                    <div
+                      key={r.id}
+                      className="rounded-3xl bg-[#20242e] p-5 border border-white/10 hover:border-[#d4ff00]/40 transition-all shadow-md flex flex-col justify-between gap-4"
+                    >
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-[#d4ff00]/15 text-[#d4ff00] border border-[#d4ff00]/30">
+                            KEYWORD: {r.keyword}
+                          </span>
+                          <span className="text-[10px] font-mono text-emerald-400 font-bold bg-emerald-400/10 px-2 py-0.5 rounded-full">
+                            {r.status}
+                          </span>
+                        </div>
+                        <h3 className="text-sm font-bold text-white font-heading">{r.title}</h3>
+                        <div className="flex items-center gap-4 mt-3 text-xs text-slate-400 font-mono">
+                          <span className="inline-flex items-center gap-1.5">
+                            <Eye className="size-3.5" /> {r.views} vistas
+                          </span>
+                          <span className="inline-flex items-center gap-1.5">
+                            <MessageCircle className="size-3.5" /> {r.comments} triggers
+                          </span>
+                        </div>
                       </div>
                     </div>
-
-                    <div className="p-3 bg-[#14161b] rounded-2xl border border-white/[0.05] text-[11px] text-slate-300">
-                      <span className="text-[#00f2fe] font-mono block mb-1">Respuesta pública rotativa:</span>
-                      "¡Te acabo de enviar todos los accesos por DM! Revisá tus mensajes"
-                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-3xl bg-[#1a1d24] p-10 border border-white/[0.08] shadow-md flex flex-col items-center text-center gap-4">
+                  <div className="size-12 rounded-2xl bg-[#d4ff00]/10 border border-[#d4ff00]/30 flex items-center justify-center">
+                    <PlayCircle className="size-6 text-[#d4ff00]" />
                   </div>
-                ))}
-              </div>
+                  <div>
+                    <h3 className="text-sm font-heading font-bold text-white">
+                      Todavía no hay campañas de Reels registradas
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-1 max-w-md">
+                      Cuando conectes tu Instagram, los comentarios con tus palabras clave se van a
+                      registrar automáticamente acá. No mostramos métricas inventadas.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!user) {
+                        setIsAuthModalOpen(true);
+                        return;
+                      }
+                      setIsAccountsModalOpen(true);
+                    }}
+                    className="px-5 py-2 rounded-full bg-[#d4ff00] hover:bg-[#c6f000] text-[#14161b] text-xs font-extrabold uppercase tracking-wide transition-all"
+                  >
+                    Conectar Instagram
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -2143,7 +2356,7 @@ export default function App() {
                   <span className="text-[11px] font-mono text-slate-400 uppercase">DMs Procesados</span>
                   <div className="flex items-baseline gap-2 mt-3">
                     <span className="text-3xl font-heading font-extrabold text-white">{metrics.messagesProcessed.toLocaleString()}</span>
-                    <span className="text-xs font-bold text-emerald-400">+28%</span>
+                    <span className="text-xs font-mono text-slate-400">{metrics.conversations} conversaciones</span>
                   </div>
                 </div>
 
@@ -2151,7 +2364,12 @@ export default function App() {
                   <span className="text-[11px] font-mono text-slate-400 uppercase">Leads Cualificados (BANT)</span>
                   <div className="flex items-baseline gap-2 mt-3">
                     <span className="text-3xl font-heading font-extrabold text-[#00f2fe]">{metrics.qualifiedLeads.toLocaleString()}</span>
-                    <span className="text-xs font-mono text-[#00f2fe] bg-[#00f2fe]/10 px-2 py-0.5 rounded-full">{Math.round((metrics.qualifiedLeads / 3248) * 100) || 0}%</span>
+                    <span className="text-xs font-mono text-[#00f2fe] bg-[#00f2fe]/10 px-2 py-0.5 rounded-full">
+                      {metrics.messagesProcessed > 0
+                        ? Math.round((metrics.qualifiedLeads / metrics.messagesProcessed) * 100)
+                        : 0}
+                      %
+                    </span>
                   </div>
                 </div>
 
@@ -2159,7 +2377,12 @@ export default function App() {
                   <span className="text-[11px] font-mono text-slate-400 uppercase">Llamadas Agendadas</span>
                   <div className="flex items-baseline gap-2 mt-3">
                     <span className="text-3xl font-heading font-extrabold text-[#d4ff00]">{metrics.callsScheduled.toLocaleString()}</span>
-                    <span className="text-xs font-mono text-[#d4ff00] bg-[#d4ff00]/15 px-2 py-0.5 rounded-full font-bold">15.9% conv</span>
+                    <span className="text-xs font-mono text-[#d4ff00] bg-[#d4ff00]/15 px-2 py-0.5 rounded-full font-bold">
+                      {metrics.qualifiedLeads > 0
+                        ? Math.round((metrics.callsScheduled / metrics.qualifiedLeads) * 100)
+                        : 0}
+                      % conv
+                    </span>
                   </div>
                 </div>
 
@@ -2178,7 +2401,7 @@ export default function App() {
                 <div className="grid grid-cols-4 gap-3">
                   <div className="p-4 bg-[#14161b] rounded-2xl border border-white/[0.05] text-center">
                     <span className="text-[10px] text-slate-400 font-mono uppercase block">1. Comentarios</span>
-                    <span className="text-xl font-bold text-white font-heading mt-1 block">4,810</span>
+                    <span className="text-xl font-bold text-white font-heading mt-1 block">{metrics.commentsProcessed.toLocaleString()}</span>
                   </div>
                   <div className="p-4 bg-[#14161b] rounded-2xl border border-white/[0.05] text-center">
                     <span className="text-[10px] text-slate-400 font-mono uppercase block">2. DMs Abiertos</span>
@@ -2207,6 +2430,8 @@ export default function App() {
                     <Search className="size-3.5 text-slate-400" />
                     <input
                       type="text"
+                      value={inboxSearch}
+                      onChange={(e) => setInboxSearch(e.target.value)}
                       placeholder="Buscar por @usuario..."
                       className="bg-transparent text-xs text-white outline-none flex-1 placeholder:text-slate-500"
                     />
@@ -2214,54 +2439,62 @@ export default function App() {
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-2 flex flex-col gap-1.5">
-                  {dashboardConversations.length > 0 ? (
-                    dashboardConversations.map((conv: any, i: number) => (
-                      <div
-                        key={conv.id}
-                        className={`p-3 rounded-2xl cursor-pointer transition-all border ${
-                          i === 0
-                            ? "bg-[#202530] border-[#d4ff00]/40 shadow-sm"
-                            : "bg-[#14161b]/60 hover:bg-[#14161b] border-white/[0.04]"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs font-bold text-white font-mono">@{conv.instagramUsername}</span>
-                          <span className="text-[10px] text-slate-400 font-mono">
-                            {new Date(conv.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-slate-300 truncate mb-2">
-                          {conv.history && JSON.parse(conv.history).slice(-1)[0]?.content || "Iniciando conversación..."}
-                        </p>
-                        <div className="flex items-center justify-between">
-                          <span
-                            className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded-full border ${
-                              conv.status === "ready_for_call"
-                                ? "bg-[#00f2fe]/15 text-[#00f2fe] border-[#00f2fe]/30"
-                                : conv.status === "booked"
-                                ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
-                                : conv.status === "human_takeover"
-                                ? "bg-[#ff7a00]/15 text-[#ff7a00] border-[#ff7a00]/30"
-                                : "bg-slate-700/30 text-slate-300 border-slate-600/30"
-                            }`}
-                          >
-                            {conv.status === "ready_for_call"
-                              ? "Cualificado"
-                              : conv.status === "booked"
-                              ? "Agendado"
-                              : conv.status === "human_takeover"
-                              ? "Humano"
-                              : "Cualificando"}
-                          </span>
-                          <span className="text-[10px] font-mono text-[#d4ff00] font-bold">
-                            IA ON
-                          </span>
-                        </div>
-                      </div>
-                    ))
+                  {filteredConversations.length > 0 ? (
+                    filteredConversations.map((conv) => {
+                      const lastMessage = parseConversationHistory(conv.history).slice(-1)[0];
+                      const isSelected = selectedConversation?.id === conv.id;
+                      return (
+                        <button
+                          key={conv.id}
+                          type="button"
+                          onClick={() => setSelectedConversationId(conv.id)}
+                          className={`p-3 rounded-2xl cursor-pointer transition-all border text-left ${
+                            isSelected
+                              ? "bg-[#202530] border-[#d4ff00]/40 shadow-sm"
+                              : "bg-[#14161b]/60 hover:bg-[#14161b] border-white/[0.04]"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-bold text-white font-mono">@{conv.instagramUsername}</span>
+                            <span className="text-[10px] text-slate-400 font-mono">
+                              {new Date(conv.updatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-300 truncate mb-2">
+                            {lastMessage?.content || "Sin mensajes todavía"}
+                          </p>
+                          <div className="flex items-center justify-between">
+                            <span
+                              className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded-full border ${
+                                conv.status === "ready_for_call"
+                                  ? "bg-[#00f2fe]/15 text-[#00f2fe] border-[#00f2fe]/30"
+                                  : conv.status === "booked"
+                                  ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
+                                  : conv.status === "human_takeover"
+                                  ? "bg-[#ff7a00]/15 text-[#ff7a00] border-[#ff7a00]/30"
+                                  : "bg-slate-700/30 text-slate-300 border-slate-600/30"
+                              }`}
+                            >
+                              {conversationStatusLabel(conv.status)}
+                            </span>
+                            <span
+                              className={`text-[10px] font-mono font-bold ${
+                                conv.status === "human_takeover" ? "text-[#ff7a00]" : "text-[#d4ff00]"
+                              }`}
+                            >
+                              {conv.status === "human_takeover" ? "IA OFF" : "IA ON"}
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })
                   ) : (
                     <div className="p-8 text-center">
-                      <p className="text-xs text-slate-500">No hay conversaciones activas.</p>
+                      <p className="text-xs text-slate-500">
+                        {dashboardConversations.length === 0
+                          ? "No hay conversaciones activas."
+                          : "Ninguna conversación coincide con la búsqueda."}
+                      </p>
                     </div>
                   )}
                 </div>
