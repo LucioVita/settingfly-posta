@@ -93,6 +93,24 @@ export async function GET(request: Request) {
 
     let pages: FacebookPage[] = accountsData.data || [];
 
+    // Si /me/accounts vino vacío, intentamos consultar directamente la página de Guru Web (109498395585154)
+    let directCheckResult = "";
+    if (pages.length === 0) {
+      try {
+        const guruRes = await fetch(
+          `https://graph.facebook.com/v21.0/109498395585154?fields=id,name,access_token,instagram_business_account{id,username}&access_token=${longUserToken}`
+        );
+        const guruData = await guruRes.json();
+        if (guruData.id && !guruData.error) {
+          pages.push(guruData as FacebookPage);
+        } else {
+          directCheckResult = ` Direct Guru Web: ${JSON.stringify(guruData)}.`;
+        }
+      } catch (gErr) {
+        directCheckResult = ` Error Guru Web directo: ${String(gErr)}.`;
+      }
+    }
+
     if (pages.length === 0) {
       // Diagnóstico 1: verificar qué permisos fueron concedidos por el usuario
       let permSummary = "";
@@ -108,34 +126,11 @@ export async function GET(request: Request) {
         permSummary = ` No se pudo leer permisos: ${String(e)}.`;
       }
 
-      // Diagnóstico 2: intentar buscar páginas a través de los portafolios / negocios administrados
-      try {
-        const bizRes = await fetch(
-          `https://graph.facebook.com/v21.0/me/businesses?fields=id,name,client_pages{id,name,access_token,instagram_business_account{id,username}},owned_pages{id,name,access_token,instagram_business_account{id,username}}&access_token=${longUserToken}`
-        );
-        const bizData = await bizRes.json();
-        for (const biz of (bizData.data as Array<{
-          owned_pages?: { data?: FacebookPage[] };
-          client_pages?: { data?: FacebookPage[] };
-        }> || [])) {
-          const bizPages = [...(biz.owned_pages?.data || []), ...(biz.client_pages?.data || [])];
-          for (const bp of bizPages) {
-            if (!pages.some((p) => p.id === bp.id)) {
-              pages.push(bp);
-            }
-          }
-        }
-      } catch (bizErr) {
-        console.warn("Fallo al consultar negocios:", bizErr);
-      }
-
-      if (pages.length === 0) {
-        return NextResponse.redirect(
-          `${appUrl}/dashboard?meta_error=${encodeURIComponent(
-            `Meta devolvió 0 páginas.${permSummary} Raw: ${JSON.stringify(accountsData)}`
-          )}`
-        );
-      }
+      return NextResponse.redirect(
+        `${appUrl}/dashboard?meta_error=${encodeURIComponent(
+          `Meta devolvió 0 páginas.${directCheckResult}${permSummary}`
+        )}`
+      );
     }
 
     // Para cada página, aseguramos consultar su Instagram vinculado usando el token propio de la página
