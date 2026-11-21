@@ -1099,10 +1099,6 @@ export default function App() {
                       <h1 className="text-xl font-heading font-bold text-white tracking-tight">
                         Configura tu Setter IA en 2 clics
                       </h1>
-                      <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-[#00f2fe]/10 text-[#00f2fe] font-mono font-bold text-xs border border-[#00f2fe]/40 shadow-neon-cyan">
-                        <span className="w-2 h-2 rounded-full bg-[#00f2fe] shadow-[0_0_8px_#00f2fe]"></span>
-                        MySQL Conectado
-                      </span>
                     </div>
                     <p className="text-xs text-slate-400 mt-0.5">
                       Respuestas fluidas, naturales y sin tecnicismos pesados. Listo para captar leads hoy.
