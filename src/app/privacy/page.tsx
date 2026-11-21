@@ -116,7 +116,7 @@ export default function PrivacyPolicyPage() {
 
         {/* Footer */}
         <div className="text-center text-xs text-slate-500 pt-4">
-          &copy; {new Date().getFullYear()} Settingfly. Todos los derechos reservados.
+          &copy; 2026 Settingfly. Todos los derechos reservados.
         </div>
       </div>
     </div>
