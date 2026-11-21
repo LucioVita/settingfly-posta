@@ -979,22 +979,72 @@ export default function App() {
           </nav>
         </div>
 
-        {/* Plan Pro Scale Card */}
-        <div className="p-3.5 bg-[#1e222b] rounded-2xl border border-white/[0.08] flex flex-col gap-2.5">
+        {/* Instagram Account / Setter Status Card in Sidebar */}
+        <div className="p-3.5 bg-[#1a1d26] rounded-2xl border border-white/[0.08] flex flex-col gap-3 shadow-lg">
           <div className="flex items-center justify-between text-xs font-semibold text-slate-300">
-            <span className="flex items-center gap-1.5">
-              <Sparkles className="size-3.5 text-[#d4ff00]" />
-              Plan Pro Scale
+            <span className="flex items-center gap-1.5 text-xs">
+              <InstagramIcon className="size-3.5 text-pink-400" />
+              <span>Cuenta Setter</span>
             </span>
-            <span className="text-[#d4ff00] text-[11px] font-mono font-bold">78%</span>
+            {igAccounts.length > 0 ? (
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>Activo</span>
+              </span>
+            ) : (
+              <span className="text-[10px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                Sin vincular
+              </span>
+            )}
           </div>
-          <div className="w-full bg-[#14161b] rounded-full h-1.5 overflow-hidden">
-            <div className="bg-gradient-to-r from-[#d4ff00] via-[#00f2fe] to-[#ff7a00] h-1.5 rounded-full w-[78%]"></div>
-          </div>
-          <div className="flex justify-between items-center text-[10px] text-slate-400 font-mono">
-            <span>7,800 / 10,000 DMs</span>
-            <span className="text-emerald-400 font-bold">En Cuota</span>
-          </div>
+
+          {igAccounts.length > 0 ? (
+            <div className="flex flex-col gap-2 pt-1 border-t border-white/[0.06]">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-white truncate max-w-[130px]">
+                  @{igAccounts[0].username}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsAccountsModalOpen(true)}
+                  className="text-[10px] text-slate-400 hover:text-white transition-colors"
+                >
+                  Gestionar
+                </button>
+              </div>
+
+              {/* Botón Desconectar Setter */}
+              <button
+                type="button"
+                onClick={() => handleDisconnectIgAccount(igAccounts[0].id)}
+                className="w-full mt-1 py-1.5 px-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 hover:border-rose-500/30 text-[11px] font-medium transition-all flex items-center justify-center gap-1.5 active:scale-[0.98]"
+              >
+                <Trash2 className="size-3" />
+                <span>Desconectar Setter</span>
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2 pt-1 border-t border-white/[0.06]">
+              <p className="text-[11px] text-slate-400 leading-tight">
+                Vincula tu Instagram para automatizar respuestas.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!user) {
+                    setIsAuthModalOpen(true);
+                    triggerToast("Inicia sesión para conectar tu cuenta de Instagram.", "error");
+                    return;
+                  }
+                  setIsAccountsModalOpen(true);
+                }}
+                className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white text-[11px] font-bold transition-all shadow-md flex items-center justify-center gap-1.5"
+              >
+                <InstagramIcon className="size-3" />
+                <span>Conectar Cuenta</span>
+              </button>
+            </div>
+          )}
         </div>
       </aside>
 
@@ -1087,39 +1137,41 @@ export default function App() {
           {/* VIEW 1: ASISTENTE SETTER (WIZARD 8 PASOS) */}
           {activeTab === "wizard" && (
             <div className="max-w-[1580px] mx-auto flex flex-col gap-6">
-              {/* Header Ribbon */}
-              <div className="bg-[#1a1d24] rounded-3xl p-6 border border-white/[0.08] shadow-2xl flex flex-wrap items-center justify-between gap-4 relative overflow-hidden">
-                <div className="absolute -top-12 -right-12 w-64 h-64 bg-[#d4ff00]/5 rounded-full blur-3xl pointer-events-none"></div>
-                <div className="flex items-center gap-4 relative z-10">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#d4ff00] to-[#00f2fe] text-[#14161b] flex items-center justify-center shadow-neon-lime">
-                    <Sparkles className="size-6 text-[#14161b]" />
+              {/* Header Ribbon - Centrado estilo OpenArg */}
+              <div className="bg-[#161922] rounded-3xl p-6 border border-white/[0.08] shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
+                <div className="absolute -top-12 -right-12 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none"></div>
+
+                {/* Spacer invisible para equilibrar centrado perfecto en desktop */}
+                <div className="hidden md:block w-48 shrink-0"></div>
+
+                {/* Bloque Central Centrado */}
+                <div className="flex flex-col items-center text-center relative z-10 max-w-xl mx-auto">
+                  <div className="size-11 rounded-2xl bg-gradient-to-tr from-emerald-400 to-teal-500 text-slate-950 flex items-center justify-center shadow-lg shadow-emerald-500/20 mb-2.5">
+                    <Sparkles className="size-5 text-slate-950" />
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2.5">
-                      <h1 className="text-xl font-heading font-bold text-white tracking-tight">
-                        Configura tu Setter IA en 2 clics
-                      </h1>
-                    </div>
-                    <p className="text-xs text-slate-400 mt-0.5">
-                      Respuestas fluidas, naturales y sin tecnicismos pesados. Listo para captar leads hoy.
-                    </p>
-                  </div>
+                  <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight">
+                    Configura tu Setter IA en 2 clics
+                  </h1>
+                  <p className="text-xs md:text-sm text-slate-400 mt-1 max-w-md leading-relaxed">
+                    Respuestas fluidas, naturales y sin tecnicismos pesados. Listo para captar leads hoy.
+                  </p>
                 </div>
 
-                <div className="flex items-center gap-3 relative z-10">
+                {/* Acciones Derecha */}
+                <div className="flex items-center justify-center md:justify-end gap-3 relative z-10 w-full md:w-48 shrink-0">
                   <button
                     onClick={() => setCurrentStep(1)}
-                    className="px-4 py-2.5 rounded-full bg-[#20242e] hover:bg-[#272c38] text-slate-300 hover:text-white transition-colors text-xs font-semibold flex items-center gap-1.5 border border-white/[0.08]"
+                    className="px-3.5 py-2 rounded-xl bg-[#20242e] hover:bg-[#272c38] text-slate-300 hover:text-white transition-colors text-xs font-medium border border-white/[0.08]"
                   >
-                    <span>Reiniciar Pasos</span>
+                    <span>Reiniciar</span>
                   </button>
                   <button
                     onClick={handleSaveConfig}
                     disabled={isSaving}
-                    className="px-6 py-2.5 rounded-full bg-[#d4ff00] hover:bg-[#c6f000] text-[#14161b] shadow-neon-lime transition-all text-xs font-heading font-extrabold flex items-center gap-2 tracking-wide uppercase disabled:opacity-50"
+                    className="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-semibold text-xs tracking-wide transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 flex items-center gap-1.5"
                   >
-                    <Save className="size-4" />
-                    <span>{isSaving ? "Guardando..." : "Guardar Cambios"}</span>
+                    <Save className="size-3.5" />
+                    <span>{isSaving ? "Guardando..." : "Guardar"}</span>
                   </button>
                 </div>
               </div>
@@ -1700,20 +1752,23 @@ export default function App() {
                 </div>
 
                 {/* iPhone Simulator Column */}
-                <div className="lg:col-span-5 xl:col-span-4 sticky top-6 flex flex-col gap-4">
+                <div className="lg:col-span-5 xl:col-span-4 sticky top-6 flex flex-col gap-4 font-sans">
                   <div className="flex items-center justify-between px-2">
                     <div className="flex items-center gap-2">
-                      <span className="text-[13px] font-heading font-semibold tracking-tight text-slate-200">
+                      <span className="text-[13px] font-semibold tracking-tight text-slate-200">
                         Simulador iPhone en Vivo
                       </span>
                     </div>
-                    <span className="text-[11px] font-mono font-bold text-[#d4ff00] bg-[#d4ff00]/15 px-3 py-1 rounded-full border border-[#d4ff00]/30 shadow-neon-lime capitalize">
+                    <span className="text-[11px] font-medium text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20 capitalize">
                       Dialecto: {config.dialect}
                     </span>
                   </div>
 
                   {/* Realistic Modern iPhone Frame */}
-                  <div className="relative mx-auto w-full max-w-[340px] bg-[#0c0d12] rounded-[3rem] p-3 shadow-phone-electric border-4 border-[#222634] ring-1 ring-[#00f2fe]/20">
+                  <div
+                    style={{ fontFamily: "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}
+                    className="relative mx-auto w-full max-w-[340px] bg-[#0c0d12] rounded-[3rem] p-3 shadow-2xl border-4 border-[#222634] ring-1 ring-white/10"
+                  >
                     {/* Dynamic Island */}
                     <div className="absolute top-5 left-1/2 -translate-x-1/2 w-24 h-4 bg-black rounded-full z-30 flex items-center justify-center">
                       <div className="w-2.5 h-2.5 rounded-full bg-[#1b1c24] mr-2"></div>
@@ -1727,10 +1782,10 @@ export default function App() {
                         <div className="flex items-center gap-2.5">
                           <ChevronLeft className="size-4 text-slate-400" />
                           <div className="relative">
-                            <div className="size-8 rounded-full bg-gradient-to-tr from-[#d4ff00] to-[#00f2fe] flex items-center justify-center text-[#14161b] font-bold text-xs shadow-sm">
+                            <div className="size-8 rounded-full bg-gradient-to-tr from-emerald-400 to-teal-500 flex items-center justify-center text-slate-950 font-bold text-xs shadow-sm">
                               {config.setterName ? config.setterName[0] : "I"}
                             </div>
-                            <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-[#00f2fe] ring-2 ring-[#161820]"></span>
+                            <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-400 ring-2 ring-[#161820]"></span>
                           </div>
                           <div className="flex flex-col">
                             <div className="flex items-center gap-1">
@@ -1738,7 +1793,7 @@ export default function App() {
                                 {config.setterName} • {config.businessName}
                               </span>
                             </div>
-                            <span className="text-[10px] text-[#00f2fe] font-mono">En línea ahora</span>
+                            <span className="text-[10px] text-emerald-400 font-medium">En línea ahora</span>
                           </div>
                         </div>
                         <div className="flex items-center gap-2 text-slate-400">
@@ -1758,7 +1813,7 @@ export default function App() {
                       {/* Chat Messages Feed (Interactivo 100%) */}
                       <div className="flex-1 p-3.5 overflow-y-auto flex flex-col gap-3 bg-[#0f1116]">
                         <div className="text-center my-0.5">
-                          <span className="text-[9px] font-mono font-semibold text-slate-500 uppercase tracking-widest">
+                          <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">
                             Hoy • Simulación de Lead en Vivo
                           </span>
                         </div>
@@ -1766,35 +1821,35 @@ export default function App() {
                         {simChat.map((msg) =>
                           msg.role === "user" ? (
                             <div key={msg.id} className="flex justify-end">
-                              <div className="bg-[#242936] text-white px-3.5 py-2.5 rounded-2xl rounded-tr-xs max-w-[85%] text-xs font-medium border border-white/10 shadow-sm leading-relaxed">
+                              <div className="bg-[#242936] text-white px-3.5 py-2.5 rounded-2xl rounded-tr-xs max-w-[85%] text-xs font-normal border border-white/10 shadow-sm leading-relaxed">
                                 {msg.content}
                               </div>
                             </div>
                           ) : (
                             <div key={msg.id} className="flex items-start gap-2">
-                              <div className="size-5 rounded-full bg-[#d4ff00] text-[#14161b] flex items-center justify-center font-bold text-[9px] shrink-0 mt-1 shadow-sm">
+                              <div className="size-5 rounded-full bg-emerald-400 text-slate-950 flex items-center justify-center font-bold text-[9px] shrink-0 mt-1 shadow-sm">
                                 {config.setterName ? config.setterName[0] : "A"}
                               </div>
                               <div className="flex flex-col gap-2 max-w-[85%]">
-                                <div className="bg-gradient-to-r from-[#00f2fe]/15 to-[#00f2fe]/5 border border-[#00f2fe]/50 text-[#e6faff] px-3.5 py-2.5 rounded-2xl rounded-tl-xs text-xs font-medium shadow-neon-cyan leading-relaxed">
+                                <div className="bg-[#1e2433] border border-white/10 text-slate-100 px-3.5 py-2.5 rounded-2xl rounded-tl-xs text-xs font-normal shadow-sm leading-relaxed">
                                   {msg.content}
                                 </div>
                                 {msg.hasBooking && (
-                                  <div className="bg-[#181c25] p-3 rounded-2xl border border-[#d4ff00]/40 shadow-neon-lime flex flex-col gap-2 mt-1">
+                                  <div className="bg-[#181c25] p-3 rounded-2xl border border-emerald-500/30 shadow-lg flex flex-col gap-2 mt-1">
                                     <div className="flex items-center gap-2">
-                                      <div className="w-7 h-7 rounded-xl bg-[#d4ff00]/20 text-[#d4ff00] flex items-center justify-center border border-[#d4ff00]/40">
+                                      <div className="w-7 h-7 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/40">
                                         <Calendar className="size-4" />
                                       </div>
                                       <div className="flex flex-col min-w-0">
                                         <span className="text-xs font-bold text-white truncate">{config.ctaHook}</span>
-                                        <span className="text-[10px] text-[#00f2fe] font-mono">Espacios disponibles</span>
+                                        <span className="text-[10px] text-emerald-400 font-medium">Espacios disponibles</span>
                                       </div>
                                     </div>
                                     <a
                                       href={config.bookingUrl}
                                       target="_blank"
                                       rel="noreferrer"
-                                      className="w-full py-2 rounded-xl bg-[#d4ff00] hover:bg-[#c6f000] text-[#14161b] font-heading font-extrabold text-[11px] uppercase tracking-wider text-center transition-colors shadow-sm"
+                                      className="w-full py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-semibold text-xs tracking-wide text-center transition-all shadow-md"
                                     >
                                       Agendar Cita
                                     </a>
@@ -1808,13 +1863,13 @@ export default function App() {
                         {/* Indicador de escribiendo (DeepSeek pensando) */}
                         {simIsThinking && (
                           <div className="flex items-start gap-2 animate-fadeIn">
-                            <div className="size-5 rounded-full bg-[#d4ff00] text-[#14161b] flex items-center justify-center font-bold text-[9px] shrink-0 mt-1">
+                            <div className="size-5 rounded-full bg-emerald-400 text-slate-950 flex items-center justify-center font-bold text-[9px] shrink-0 mt-1">
                               {config.setterName ? config.setterName[0] : "A"}
                             </div>
                             <div className="bg-[#1e222b] px-3.5 py-2.5 rounded-2xl rounded-tl-xs border border-white/10 flex items-center gap-1.5 shadow-sm">
-                              <span className="size-1.5 rounded-full bg-[#00f2fe] animate-bounce"></span>
-                              <span className="size-1.5 rounded-full bg-[#00f2fe] animate-bounce [animation-delay:0.2s]"></span>
-                              <span className="size-1.5 rounded-full bg-[#00f2fe] animate-bounce [animation-delay:0.4s]"></span>
+                              <span className="size-1.5 rounded-full bg-emerald-400 animate-bounce"></span>
+                              <span className="size-1.5 rounded-full bg-emerald-400 animate-bounce [animation-delay:0.2s]"></span>
+                              <span className="size-1.5 rounded-full bg-emerald-400 animate-bounce [animation-delay:0.4s]"></span>
                             </div>
                           </div>
                         )}
