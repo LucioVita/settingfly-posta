@@ -82,13 +82,51 @@ export async function GET(request: Request) {
     const accountsRes = await fetch(accountsUrl.toString());
     const accountsData = await accountsRes.json();
 
+    if (accountsData.error) {
+      console.error("Error al obtener páginas de Meta:", accountsData.error);
+      return NextResponse.redirect(
+        `${appUrl}/dashboard?meta_error=${encodeURIComponent(
+          "Error de Meta API al leer páginas: " + (accountsData.error.message || JSON.stringify(accountsData.error))
+        )}`
+      );
+    }
+
     const pages: FacebookPage[] = accountsData.data || [];
+
+    if (pages.length === 0) {
+      return NextResponse.redirect(
+        `${appUrl}/dashboard?meta_error=${encodeURIComponent(
+          "Meta no devolvió ninguna página de Facebook. Asegúrate de haber tildado tu página en el diálogo de Facebook."
+        )}`
+      );
+    }
+
+    // Para cada página, aseguramos consultar su Instagram vinculado usando el token propio de la página
+    for (const page of pages) {
+      if (!page.instagram_business_account?.id && page.access_token) {
+        try {
+          const pageRes = await fetch(
+            `https://graph.facebook.com/v21.0/${page.id}?fields=instagram_business_account{id,username},connected_instagram_account{id,username}&access_token=${page.access_token}`
+          );
+          const pageData = await pageRes.json();
+          if (pageData.instagram_business_account?.id) {
+            page.instagram_business_account = pageData.instagram_business_account;
+          } else if (pageData.connected_instagram_account?.id) {
+            page.instagram_business_account = pageData.connected_instagram_account;
+          }
+        } catch (err) {
+          console.warn(`Error al consultar Instagram para página ${page.name}:`, err);
+        }
+      }
+    }
+
     const pagesWithIg = pages.filter((p) => p.instagram_business_account?.id);
 
     if (pagesWithIg.length === 0) {
+      const pageNames = pages.map((p) => p.name).join(", ");
       return NextResponse.redirect(
         `${appUrl}/dashboard?meta_error=${encodeURIComponent(
-          "No encontramos ninguna cuenta de Instagram Profesional vinculada a tus páginas de Facebook. Asegúrate de que tu Instagram sea de Empresa o Creador y esté vinculado a tu Fanpage."
+          `Páginas detectadas: [${pageNames}], pero Meta informa que ninguna tiene una cuenta de Instagram Profesional enlazada. Asegúrate de que en la app de Instagram (@guruweb.com.ar) esté configurada como cuenta de Empresa o Creador.`
         )}`
       );
     }
