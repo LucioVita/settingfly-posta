@@ -212,7 +212,7 @@ export function truncateGraphemeSafe(
 
 /** Envía un DM de texto a un usuario por su IGSID. */
 export async function sendInstagramText(params: {
-  account: Pick<IgAccount, "id" | "accessToken" | "username">;
+  account: Pick<IgAccount, "id" | "instagramId" | "accessToken" | "username">;
   recipientId: string;
   text: string;
 }): Promise<MetaSendResult> {
@@ -223,7 +223,12 @@ export async function sendInstagramText(params: {
     );
   }
 
-  const result = await callGraph("/me/messages", params.account.accessToken, {
+  // En la API moderna de Instagram Graph, el endpoint es /{instagram_business_id}/messages
+  const endpoint = params.account.instagramId
+    ? `/${params.account.instagramId}/messages`
+    : "/me/messages";
+
+  const result = await callGraph(endpoint, params.account.accessToken, {
     recipient: { id: params.recipientId },
     message: { text },
   });
@@ -237,13 +242,17 @@ export async function sendInstagramText(params: {
 
 /** Private reply: abre un DM a partir de un comentario (válido hasta 7 días después). */
 export async function sendInstagramPrivateReply(params: {
-  account: Pick<IgAccount, "id" | "accessToken" | "username">;
+  account: Pick<IgAccount, "id" | "instagramId" | "accessToken" | "username">;
   commentId: string;
   text: string;
 }): Promise<MetaSendResult> {
   const { text } = truncateGraphemeSafe(params.text);
 
-  const result = await callGraph("/me/messages", params.account.accessToken, {
+  const endpoint = params.account.instagramId
+    ? `/${params.account.instagramId}/messages`
+    : "/me/messages";
+
+  const result = await callGraph(endpoint, params.account.accessToken, {
     recipient: { comment_id: params.commentId },
     message: { text },
   });
